@@ -1,0 +1,92 @@
+<!-- FOOTER (Clean & Minimal - Full Width) -->
+<footer class="bg-fashion-black text-white pt-20 pb-10 px-6 lg:px-12 w-full">
+    <div class="w-full flex flex-col md:flex-row justify-between gap-12 border-b border-gray-800 pb-16">
+
+        <div class="md:w-1/4">
+            <h2 class="text-3xl font-bold tracking-tight mb-6">AETHERIA</h2>
+            <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                Redefiniendo el lujo moderno con una estética atemporal. Moda consciente para el mundo
+                contemporáneo.
+            </p>
+            <div class="flex space-x-4">
+                <i class="ph ph-instagram-logo text-xl hover:text-fashion-accent transition-colors cursor-pointer"></i>
+                <i class="ph ph-pinterest-logo text-xl hover:text-fashion-accent transition-colors cursor-pointer"></i>
+                <i class="ph ph-tiktok-logo text-xl hover:text-fashion-accent transition-colors cursor-pointer"></i>
+            </div>
+        </div>
+
+        <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <h4 class="uppercase text-xs tracking-[0.2em] mb-6 text-gray-500 font-semibold">Explorar</h4>
+                <ul class="space-y-3 text-sm text-gray-300">
+                    <li><a href="#"
+                            class="hover:text-white hover:underline decoration-fashion-accent underline-offset-4">Novedades</a>
+                    </li>
+                    <li><a href="#"
+                            class="hover:text-white hover:underline decoration-fashion-accent underline-offset-4">Colección
+                            Mujer</a></li>
+                    <li><a href="#"
+                            class="hover:text-white hover:underline decoration-fashion-accent underline-offset-4">Colección
+                            Hombre</a></li>
+                    <li><a href="#"
+                            class="hover:text-white hover:underline decoration-fashion-accent underline-offset-4">Editorial</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="uppercase text-xs tracking-[0.2em] mb-6 text-gray-500 font-semibold">Asistencia</h4>
+                <ul class="space-y-3 text-sm text-gray-300">
+                    <li><a href="#"
+                            class="hover:text-white hover:underline decoration-fashion-accent underline-offset-4">Contacto</a>
+                    </li>
+                    <li><a href="#"
+                            class="hover:text-white hover:underline decoration-fashion-accent underline-offset-4">Envíos</a>
+                    </li>
+                    <li><a href="#"
+                            class="hover:text-white hover:underline decoration-fashion-accent underline-offset-4">Devoluciones</a>
+                    </li>
+                    <li><a href="#"
+                            class="hover:text-white hover:underline decoration-fashion-accent underline-offset-4">Guía
+                            de Tallas</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="uppercase text-xs tracking-[0.2em] mb-6 text-gray-500 font-semibold">Newsletter</h4>
+                <p class="text-gray-400 text-sm mb-4">Suscríbete para recibir acceso anticipado.</p>
+                <form class="flex flex-col space-y-3">
+                    <input type="email" placeholder="Email address"
+                        class="bg-transparent border-b border-gray-700 py-2 focus:outline-none focus:border-white text-white text-sm">
+                    <button
+                        class="text-left text-xs uppercase tracking-widest font-semibold hover:text-fashion-accent transition-colors">Suscribirse</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full mt-10 flex flex-col md:flex-row justify-between items-center text-xs text-gray-600">
+        <p>&copy; 2025 Aetheria Fashion House.</p>
+        <div class="flex space-x-6 mt-4 md:mt-0">
+            <a href="#" class="hover:text-gray-400">Privacidad</a>
+            <a href="#" class="hover:text-gray-400">Términos</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Header Scroll Effect
+    window.addEventListener('scroll', function () {
+        const header = document.getElementById('main-header');
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+            header.style.top = '0';
+        } else {
+            header.classList.remove('scrolled');
+            header.style.top = '31px';
+        }
+    });
+</script>
+</body>
+
+</html>
