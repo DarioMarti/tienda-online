@@ -1,0 +1,27 @@
+{
+  "name": "tienda-online",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
+    "build": "npx tailwindcss -i ./styles/input.css -o ./styles/output.css --minify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DarioMarti/tienda-online.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DarioMarti/tienda-online/issues"
+  },
+  "homepage": "https://github.com/DarioMarti/tienda-online#readme",
+  "description": "",
+  "devDependencies": {
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
+  }
+}

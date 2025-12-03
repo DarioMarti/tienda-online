@@ -10,32 +10,6 @@
         echo "Fuse";
     } ?></title>
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Configuración Tailwind -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'fashion-black': '#111111',
-                        'fashion-gray': '#F9F9F9',
-                        'fashion-accent': '#D4AF37', /* Oro sutil */
-                        'fashion-text': '#333333',
-                    },
-                    fontFamily: {
-                        serif: ['Bodoni Moda', 'serif'],
-                        sans: ['Jost', 'sans-serif'],
-                    },
-                    spacing: {
-                        '128': '32rem',
-                    }
-                },
-            },
-        }
-    </script>
-
     <!-- Fuentes Google: Bodoni Moda (Editorial) y Jost (Geométrica moderna) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,10 +20,12 @@
     <!-- Iconos Phosphor -->
     <script src="https://unpkg.com/phosphor-icons"></script>
 
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="../styles/output.css">
 
 </head>
 
-<body class="antialiased"></body>
+<body class="antialiased">
 <!-- ANUNCIO SUPERIOR -->
 <div class="bg-fashion-black text-white text-[10px] py-2 text-center tracking-widest uppercase font-medium w-full">
     Envíos globales gratuitos en pedidos superiores a 300€
