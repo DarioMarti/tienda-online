@@ -1,3 +1,7 @@
+<?php
+// Iniciar sesión para verificar si el usuario está logueado
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -67,8 +71,36 @@
 
             <!-- Iconos Derecha -->
             <div class="flex items-center space-x-6 text-xl">
-                <span class="text-xs uppercase tracking-widest hidden md:block cursor-pointer font-medium mr-2 login"
-                    id="login">Login</span>
+                <?php if (isset($_SESSION['usuario'])): ?>
+                    <!-- USUARIO REGISTRADO -->
+                    <div class="relative group">
+                        <span
+                            class="text-xs uppercase tracking-widest hidden md:flex cursor-pointer font-medium mr-2 items-center gap-2">
+                            <i class="ph ph-user-circle text-2xl"></i>
+                            <span><?= htmlspecialchars($_SESSION['usuario']['nombre']) ?></span>
+                        </span>
+                        <!-- Dropdown menu (opcional) -->
+                        <div
+                            class="hidden group-hover:block absolute right-0  w-48 bg-white shadow-lg rounded-lg py-2 z-50">
+                            <a href="#"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">Mi
+                                Perfil</a>
+                            <a href="#"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">Mis
+                                Pedidos</a>
+                            <hr class="my-2">
+                            <a href="../modelos/usuarios/cerrar-sesion.php"
+                                class="block px-4 py-2 text-sm text-red-600 hover:bg-fashion-gray transition-colors">Cerrar
+                                Sesión</a>
+                        </div>
+                    </div>
+                <?php else: ?>
+
+                    <!--USUARIO NO REGISTRADO-->
+                    <span class="text-xs uppercase tracking-widest hidden md:block cursor-pointer font-medium mr-2 login"
+                        id="login">Login</span>
+                <?php endif; ?>
+
                 <i class="ph ph-magnifying-glass cursor-pointer hover:scale-110 transition-transform search"
                     id="search"></i>
                 <div class="relative cursor-pointer hover:scale-110 transition-transform">
@@ -92,19 +124,19 @@
         </div>
 
         <!-- Formulario -->
-        <form class="space-y-6 flex-1" action="../modelos/agregar-usuario.php" method="POST">
+        <form class="space-y-6 flex-1" action="../modelos/usuarios/sesion.php" method="POST">
             <div class="space-y-2">
                 <label class="text-xs uppercase tracking-widest font-semibold text-gray-500">Email</label>
                 <input type="email"
                     class="w-full  py-2 text-fashion-black focus:outline-none focus:border-fashion-black transition-colors bg-transparent"
-                    id="formName" placeholder="tu@email.com">
+                    id="formName" name="email" placeholder="tu@email.com">
             </div>
 
             <div class="space-y-2">
                 <label class="text-xs uppercase tracking-widest font-semibold text-gray-500">Contraseña</label>
                 <input type="password"
                     class="w-full py-2 text-fashion-black focus:outline-none focus:border-fashion-black transition-colors bg-transparent "
-                    id="formPassword" placeholder="••••••••">
+                    id="formPassword" name="pass" placeholder="••••••••">
             </div>
 
             <div class="flex justify-between items-center text-xs text-gray-500 pt-2 checkboxForm" id="checkboxForm">
@@ -125,7 +157,7 @@
         <!-- Footer del Sidebar -->
         <div class="border-t border-gray-100 pt-8 text-center">
             <p class="text-sm text-gray-500 mb-4">¿Aún no tienes cuenta?</p>
-            <a href="#"
+            <a href="registro-usuario-page.php"
                 class="inline-block border border-fashion-black text-fashion-black px-8 py-3 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-fashion-black hover:text-white transition-all duration-300">
                 Crear Cuenta
             </a>

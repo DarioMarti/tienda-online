@@ -3,9 +3,8 @@
 //RECIBIR DATOS
 
 $nombre = trim($_POST["nombre"] ?? "");
-$apellido = trim($_POST["apellido"] ?? "");
 $email = trim($_POST["email"] ?? "");
-$password = $_POST["contraseña"] ?? "";
+$pass = $_POST["contraseña"] ?? "";
 
 
 //VALIDAR DATOS
@@ -16,9 +15,7 @@ if ($nombre === "") {
     $errores[] = "El nombre es obligatorio.";
 }
 
-if ($apellido === "") {
-    $errores[] = "El apellido es obligatorio.";
-}
+
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $errores[] = "El email no es válido.";
@@ -26,15 +23,15 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 //VALIDACIONES DE CONTRASEÑA
 
-if (strlen($password) < 6 && strlen($password)) {
+if (strlen($pass) < 6 && strlen($pass)) {
     $errores[] = "La contraseña debe tener al menos 6 caracteres.";
 }
 
-if (!preg_match('/[A-Z]/', $contraseña)) {
+if (!preg_match('/[A-Z]/', $pass)) {
     $errores[] = "La contraseña debe contener al menos una mayúscula.";
 }
 
-if (!preg_match('/[0-9]/', $contraseña)) {
+if (!preg_match('/[0-9]/', $pass)) {
     $errores[] = "La contraseña debe contener al menos un número.";
 }
 
@@ -51,7 +48,9 @@ if (!empty($errores)) {
 
 // CONECTAR A BASE DE DATOS
 
-$conn = require("../config/conexion.php");
+require("../../config/conexion.php");
+
+$conn = conectar();
 
 
 //COMPROBAR SI EL EMAIL YA EXISTE
@@ -66,24 +65,23 @@ if ($consultaEmail->fetch()) {
 
 
 //ENCRYPTAR CONTRASEÑA
-$hash = password_hash($password, PASSWORD_DEFAULT);
+$hash = password_hash($pass, PASSWORD_DEFAULT);
 
 
 //INSERTAR NUEVO USUARIO
 try {
 
-    $consulta = "INSERT INTO usuarios (nombre, apellido, email, contraseña) 
-                 VALUES (:nombre, :apellido, :email, :contraseña)";
+    $consulta = "INSERT INTO usuarios (nombre, email, password) 
+                 VALUES (:nombre, :email, :pass)";
 
     $stmt = $conn->prepare($consulta);
     $stmt->execute([
         ":nombre" => $nombre,
-        ":apellido" => $apellido,
         ":email" => $email,
-        ":contraseña" => $hash
+        ":pass" => $hash
     ]);
 
-    header("location:../usuario-registrado-page.php");
+    header("location:../../src/usuario-registrado-page.php");
 
 } catch (PDOException $e) {
     echo '
