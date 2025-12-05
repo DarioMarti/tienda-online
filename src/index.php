@@ -1,5 +1,6 @@
 <?php
 $titulo = "Inicio - Aetheria";
+session_start();
 $heroImage = "../img/home/Hero-Imagen.jpg";
 include 'Cabecera.php';
 

@@ -24,21 +24,25 @@ window.addEventListener('scroll', function () {
     }
 });
 
+// Solo añadir eventos si el botón de login existe (usuario no logueado)
+if (LOGIN) {
+    LOGIN.addEventListener('click', function () {
+        if (LOGIN_SIDEBAR.classList.contains('login-sidebar-open')) {
+            LOGIN_SIDEBAR.classList.remove('login-sidebar-open');
+            LOGIN_SIDEBAR.classList.add('login-sidebar-close');
+            LOGIN.style.color = 'black';
+        } else {
+            LOGIN_SIDEBAR.classList.add('login-sidebar-open');
+            LOGIN_SIDEBAR.classList.remove('login-sidebar-close');
+            LOGIN.style.color = ' rgb(212 175 55 / var(--tw-text-opacity, 1))';
+        }
+    });
+}
 
-LOGIN.addEventListener('click', function () {
-    if (LOGIN_SIDEBAR.classList.contains('login-sidebar-open')) {
+if (CLOSE_LOGIN) {
+    CLOSE_LOGIN.addEventListener('click', function () {
         LOGIN_SIDEBAR.classList.remove('login-sidebar-open');
         LOGIN_SIDEBAR.classList.add('login-sidebar-close');
-        LOGIN.style.color = 'black';
-    } else {
-        LOGIN_SIDEBAR.classList.add('login-sidebar-open');
-        LOGIN_SIDEBAR.classList.remove('login-sidebar-close');
-        LOGIN.style.color = ' rgb(212 175 55 / var(--tw-text-opacity, 1))';
-    }
-});
-
-CLOSE_LOGIN.addEventListener('click', function () {
-    LOGIN_SIDEBAR.classList.remove('login-sidebar-open');
-    LOGIN_SIDEBAR.classList.add('login-sidebar-close');
-    LOGIN.style.color = 'black';
-});
+        if (LOGIN) LOGIN.style.color = 'black';
+    });
+}

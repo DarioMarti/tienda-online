@@ -1,5 +1,8 @@
 <?php
 require("../../config/conexion.php");
+
+// Configurar cookie de sesión para todo el dominio
+session_set_cookie_params(0, '/');
 session_start();
 
 $conn = conectar();
@@ -23,7 +26,8 @@ if ($usuario && password_verify($passUsuario, $usuario["password"])) {
         "email" => $usuario["email"],
         "rol" => $usuario["rol"] ?? "cliente",
         "telefono" => $usuario["telefono"] ?? "",
-        "direccion" => $usuario["direccion"] ?? ""
+        "direccion" => $usuario["direccion"] ?? "",
+        "fecha_creacion" => $usuario["fecha_creacion"] ?? ""
     ];
 
     // Redirigir a la página principal

@@ -1,34 +1,13 @@
-<?php
-// Iniciar sesión para verificar si el usuario está logueado
-session_start();
-?>
-<!DOCTYPE html>
-<html lang="es">
+rel="stylesheet">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php if (isset($titulo)) {
-        echo $titulo;
-    } else {
-        echo "Fuse";
-    } ?></title>
+<!-- Iconos Phosphor -->
+<script src="https://unpkg.com/phosphor-icons"></script>
 
-    <!-- Fuentes Google: Bodoni Moda (Editorial) y Jost (Geométrica moderna) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,600..96,900;1,6..96,400&family=Jost:wght@300;400;500;600&display=swap"
-        rel="stylesheet">
+<!-- Estilos Personalizados -->
+<link rel="stylesheet" href="../styles/input.css">
 
-    <!-- Iconos Phosphor -->
-    <script src="https://unpkg.com/phosphor-icons"></script>
-
-    <!-- Estilos Personalizados -->
-    <link rel="stylesheet" href="../styles/input.css">
-
-    <!-- Tailwind CSS -->
-    <link rel="stylesheet" href="../styles/output.css">
+<!-- Tailwind CSS -->
+<link rel="stylesheet" href="../styles/output.css">
 
 </head>
 
@@ -82,7 +61,7 @@ session_start();
                         <!-- Dropdown menu (opcional) -->
                         <div
                             class="hidden group-hover:block absolute right-0  w-48 bg-white shadow-lg rounded-lg py-2 z-50">
-                            <a href="#"
+                            <a href="perfil-page.php"
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">Mi
                                 Perfil</a>
                             <a href="#"
