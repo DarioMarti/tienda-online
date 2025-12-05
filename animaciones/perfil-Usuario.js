@@ -249,3 +249,46 @@ function updateProfileData(data) {
         }
     });
 }
+
+// === LÓGICA PARA ELIMINAR CUENTA ===
+const deleteBtn = document.getElementById('eliminar-cuenta');
+const deleteModal = document.getElementById('delete-account-modal');
+const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+if (deleteBtn) {
+    deleteBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (deleteModal) {
+            deleteModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    });
+}
+
+function closeDeleteModal() {
+    if (deleteModal) {
+        deleteModal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+}
+
+if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener('click', () => {
+        // Redirigir al script de eliminación
+        window.location.href = '../modelos/usuarios/eliminar-usuario.php';
+    });
+}
+
+// Cerrar al hacer clic fuera del modal
+if (deleteModal) {
+    deleteModal.addEventListener('click', (e) => {
+        if (e.target === deleteModal) {
+            closeDeleteModal();
+        }
+    });
+}

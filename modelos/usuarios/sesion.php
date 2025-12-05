@@ -18,16 +18,18 @@ $consulta->execute([":email" => $emailUsuario]);
 $usuario = $consulta->fetch(PDO::FETCH_ASSOC);
 
 // Verificar si existe el usuario y la contraseña es correcta
-if ($usuario && password_verify($passUsuario, $usuario["password"])) {
+if ($usuario && password_verify($passUsuario, $usuario["password"]) && $usuario["activo"] == 1) {
     // Crear sesión con todos los datos necesarios
     $_SESSION["usuario"] = [
+        "id" => $usuario["id"],
         "nombre" => $usuario["nombre"],
         "apellidos" => $usuario["apellidos"] ?? "",
         "email" => $usuario["email"],
         "rol" => $usuario["rol"] ?? "cliente",
         "telefono" => $usuario["telefono"] ?? "",
         "direccion" => $usuario["direccion"] ?? "",
-        "fecha_creacion" => $usuario["fecha_creacion"] ?? ""
+        "fecha_creacion" => $usuario["fecha_creacion"] ?? "",
+        "activo" => $usuario["activo"] ?? ""
     ];
 
     // Redirigir a la página principal

@@ -67,7 +67,15 @@ rel="stylesheet">
                             <a href="#"
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">Mis
                                 Pedidos</a>
+
+                            <?php if (htmlspecialchars($_SESSION['usuario']['rol']) == "admin"): ?>
+                                <a href="admin-page.php"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">
+                                    Panel de administrador
+                                </a>
+                            <?php endif; ?>
                             <hr class="my-2">
+
                             <a href="../modelos/usuarios/cerrar-sesion.php"
                                 class="block px-4 py-2 text-sm text-red-600 hover:bg-fashion-gray transition-colors">Cerrar
                                 Sesión</a>

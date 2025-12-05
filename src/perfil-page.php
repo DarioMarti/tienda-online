@@ -25,7 +25,8 @@ include 'Cabecera.php';
                         <?= htmlspecialchars($usuario['email']) ?>
                     </p>
                 </div>
-                <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs uppercase tracking-wider rounded-full">
+                <span
+                    class="px-3 py-1 <?php if (htmlspecialchars($usuario['rol']) == "admin"): ?> bg-fashion-accent text-white <?php else: ?> bg-gray-100 <?php endif; ?> text-gray-600 text-xs uppercase tracking-wider rounded-full">
                     <?= htmlspecialchars($usuario['rol']) ?>
                 </span>
             </div>
@@ -62,7 +63,7 @@ include 'Cabecera.php';
                             <label
                                 class="text-xs uppercase tracking-widest font-semibold text-gray-500">Apellidos</label>
                             <div
-                                class="w-full px-4 py-3 bg-fashion-gray border border-gray-200 rounded-lg text-fashion-black">
+                                class="w-full px-4 py-3 bg-fashion-gray border border-gray-400 rounded-lg text-fashion-black">
                                 <?= htmlspecialchars($usuario['apellidos']) ?>
                             </div>
                         </div>
@@ -182,6 +183,14 @@ include 'Cabecera.php';
                         <i class="ph ph-sign-out mr-2"></i>Cerrar Sesión
                     </a>
                 </div>
+
+                <!-- Eliminar Cuenta -->
+
+                <a href="#"
+                    class="block w-full py-3 px-4 text-xs uppercase tracking-widest font-semibold bg-gray-100 hover:bg-gray-200 text-red-600 transition-all duration-300 rounded-lg text-center"
+                    id="eliminar-cuenta">
+                    <i class="ph ph-trash mr-2"></i>Eliminar Cuenta
+                </a>
 
             </div>
 
@@ -337,6 +346,39 @@ include 'Cabecera.php';
             class="w-full bg-fashion-black text-white py-3 px-6 text-xs uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-all duration-300 rounded-lg">
             Cerrar
         </button>
+    </div>
+</div>
+
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
+<div id="delete-account-modal"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 text-center transform transition-all">
+        <!-- Icono -->
+        <div class="mb-4">
+            <i class="ph ph-warning-circle text-6xl text-red-500"></i>
+        </div>
+
+        <!-- Título -->
+        <h3 class="font-editorial text-2xl italic text-fashion-black mb-2">
+            ¿Estás seguro?
+        </h3>
+
+        <!-- Mensaje -->
+        <p class="text-gray-600 mb-6">
+            Esta acción eliminará permanentemente tu cuenta y no se puede deshacer.
+        </p>
+
+        <!-- Botones -->
+        <div class="flex gap-4">
+            <button id="cancel-delete-btn"
+                class="flex-1 bg-gray-200 text-gray-700 py-3 px-4 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-gray-300 transition-all duration-300 rounded-lg">
+                Cancelar
+            </button>
+            <button id="confirm-delete-btn"
+                class="flex-1 bg-red-600 text-white py-3 px-4 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-red-700 transition-all duration-300 rounded-lg shadow-lg hover:shadow-xl">
+                Eliminar
+            </button>
+        </div>
     </div>
 </div>
 
