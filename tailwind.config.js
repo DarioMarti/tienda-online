@@ -1,10 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     content: [
-        "./vista/**/*.php",
-        "./vista/**/*.html",
-        "./*.php",
-        "./*.html"
+        "./src/**/*.php",
+        "./animaciones/**/*.js",
+        "./styles/**/*.css",
+        "./**/*.html",
+        "./**/*.php",
+        "!./node_modules/**",
     ],
     theme: {
         extend: {
@@ -22,5 +24,16 @@ module.exports = {
             },
         },
     },
+    safelist: [
+        'bg-fashion-black',
+        'text-fashion-black',
+        'border-fashion-black',
+        'bg-fashion-accent',
+        'text-fashion-accent',
+        'border-fashion-accent',
+        'bg-fashion-gray',
+        'text-fashion-gray',
+        'border-fashion-gray',
+    ],
     plugins: [],
 }

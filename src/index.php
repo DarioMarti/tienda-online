@@ -1,28 +1,24 @@
 <?php
-$titulo = "Página con includes";
+$titulo = "Inicio - Aetheria";
+$heroImage = "../img/home/Hero-Imagen.jpg";
 include 'Cabecera.php';
 
 ?>
 
 
+<!-- HERO IMAGE -->
+<section class="flex flex-col justify-center items-center h-[60vh] w-full overflow-hidden text-center text-white px-4"
+    style="background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('<?= $heroImage ?>') center top / cover no-repeat;">
 
+    <p class="uppercase tracking-[0.3em] text-xs mb-4">Fall Winter 2025</p>
+    <h2 class="editorial-font text-5xl md:text-7xl mb-6 italic">
+        La Colección
+    </h2>
 
-<!-- HERO SECTION -->
-<section class="relative h-[60vh] w-full overflow-hidden mt-[80px]">
-    <div class="absolute inset-0">
-        <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop"
-            alt="Fashion Editorial Model" class="w-full h-full object-cover object-top" />
-        <div class="absolute inset-0 bg-black/20"></div>
-    </div>
-    <div class="absolute inset-0 flex flex-col justify-center items-center text-center text-white px-4">
-        <p class="uppercase tracking-[0.3em] text-xs mb-4">Fall Winter 2025</p>
-        <h2 class="editorial-font text-5xl md:text-7xl mb-6 italic">
-            La Colección
-        </h2>
-    </div>
 </section>
 
-<!-- MARQUEE -->
+
+<!-- MARQUESINA -->
 <div class="bg-white py-4 border-b border-gray-100 marquee-container w-full">
     <div class="marquee-content editorial-font text-xl md:text-2xl italic text-gray-300">
         New Arrivals — Sustainable Luxury — Fall Winter Collection — Timeless Elegance — New Arrivals — Sustainable
@@ -30,16 +26,16 @@ include 'Cabecera.php';
     </div>
 </div>
 
-<!-- MAIN LAYOUT: ASIDE + CATALOGO (Full Width) -->
+<!-- BLOQUE CENTRAL -->
 <div class="w-full px-6 lg:px-12 py-16">
 
     <div class="flex flex-col lg:flex-row gap-12">
 
-        <!-- ASIDE: BARRA LATERAL (Sticky - Ancho fijo relativo) -->
+        <!-- ASIDE - BARRA LATERAL -->
         <aside class="w-full lg:w-1/5 2xl:w-1/6 hidden lg:block">
             <div class="sticky top-32 space-y-12 pr-6 border-r border-gray-100 h-full">
 
-                <!-- Sección Categorías -->
+                <!-- CATEGORÍAS -->
                 <div>
                     <h3 class="editorial-font text-2xl mb-6 italic">Categorías</h3>
                     <ul class="space-y-4 text-sm tracking-wide font-light text-gray-600">
@@ -55,7 +51,7 @@ include 'Cabecera.php';
                     </ul>
                 </div>
 
-                <!-- Sección Filtros -->
+                <!-- FILTROS -->
                 <div>
                     <h3 class="editorial-font text-2xl mb-6 italic">Filtros</h3>
 
@@ -112,7 +108,7 @@ include 'Cabecera.php';
             </div>
         </aside>
 
-        <!-- MAIN CONTENT: CATALOGO (4 Columnas) -->
+        <!-- CONTENIDO PRINCIPAL -->
         <main class="w-full lg:w-4/5 2xl:w-5/6">
 
             <!-- Encabezado del Catálogo -->
@@ -132,7 +128,9 @@ include 'Cabecera.php';
                 </div>
             </div>
 
-            <!-- Grid de Productos (4 Columnas en pantallas grandes) -->
+
+            <!--CATÁLOGO -->
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
 
                 <!-- Product 1 -->
@@ -344,26 +342,6 @@ include 'Cabecera.php';
     </div>
 </div>
 
-
-
-
-
-
-
-<!--<section>
-    <h2>Contacto</h2>
-    <form action="procesar_formulario.php" method="POST">
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" name="nombre" required>
-
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-
-        <input type="submit" value="Enviar">
-    </form>
-</section>
-
--->
 <?php
 include 'Footer.html';
 ?>

@@ -1,15 +1,18 @@
 <?php
-$servidor = "localhost";
-$usuario = "root";
-$password = "";
-$base_datos = "tienda_online";
 
-// Crear conexión
-$conn = new mysqli($servidor, $usuario, $password, $base_datos);
+define("HOST", "localhost");
+define("USER", "root");
+define("PASS", "");
+define("DB", "tienda_online");
 
-// Verificar conexión
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
+try {
+    $dsn = "mysql:host=" . HOST . ";dbname=" . DB . ";charset=utf8mb4";
+
+    $conn = new PDO($dsn, USER, PASS);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+} catch (PDOException $er) {
+    die("Error en la conexión: " . $er->getMessage());
 }
-// echo "Conexión exitosa"; // Descomentar para probar
+
 ?>

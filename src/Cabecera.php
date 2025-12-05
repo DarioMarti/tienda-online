@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php if (isset($titulo)) {
+        echo $titulo;
+    } else {
+        echo "Fuse";
+    } ?></title>
+
+    <!-- Fuentes Google: Bodoni Moda (Editorial) y Jost (Geométrica moderna) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,600..96,900;1,6..96,400&family=Jost:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Iconos Phosphor -->
+    <script src="https://unpkg.com/phosphor-icons"></script>
+
+    <!-- Estilos Personalizados -->
+    <link rel="stylesheet" href="../styles/input.css">
+
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="../styles/output.css">
+
+</head>
+
+<body class="antialiased">
+    <!-- BARRA SUPERIOR -->
+    <div class="sticky top-0 w-full bg-fashion-black text-white text-[10px] py-2 text-center tracking-widest uppercase font-medium z-50 transition-transform duration-300"
+        id="top-bar">
+        Envíos globales gratuitos en pedidos superiores a 300€
+    </div>
+
+    <!-- HEADER -->
+    <header id="main-header" class="sticky top-0 w-full z-40 py-6 px-6 lg:px-12 transition-all duration-300">
+        <div class="w-full flex justify-between items-center">
+
+            <!-- Menú Izquierda -->
+            <nav class="hidden lg:flex space-x-8 text-xs uppercase tracking-widest font-medium">
+                <a href="#"
+                    class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Inicio - Aetheria' ? 'text-fashion-accent' : '' ?>">
+                    Home
+                </a>
+                <a href="#"
+                    class="hover:text-fashion-accent transition-colors font-bold <?= ($titulo ?? '') === 'Inicio - Sobre Nosotros' ? 'text-fashion-accent' : '' ?>">
+                    Sobre Nosotros
+                </a>
+                <a href="#"
+                    class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Inicio - Contacto' ? 'text-fashion-accent' : '' ?>">
+                    Contacto
+                </a>
+            </nav>
+
+            <!-- Mobile Menu Icon -->
+            <div class="lg:hidden text-2xl cursor-pointer">
+                <i class="ph ph-list"></i>
+            </div>
+
+            <!-- Logo Central -->
+            <a href="index.php" class="absolute left-1/2 transform -translate-x-1/2">
+                <img src="../img/Logotipo_Aetherea.svg" alt="Logo Aetheria" class="h-8">
+            </a>
+
+            <!-- Iconos Derecha -->
+            <div class="flex items-center space-x-6 text-xl">
+                <span class="text-xs uppercase tracking-widest hidden md:block cursor-pointer font-medium mr-2 login"
+                    id="login">Login</span>
+                <i class="ph ph-magnifying-glass cursor-pointer hover:scale-110 transition-transform search"
+                    id="search"></i>
+                <div class="relative cursor-pointer hover:scale-110 transition-transform">
+                    <i class="ph ph-handbag cesta"></i>
+                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-fashion-accent rounded-full"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- LOGIN SIDEBAR -->
+    <div id="login-sidebar" class="login-sidebar login-sidebar-close">
+
+
+        <!-- Cabecera del Sidebar -->
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="editorial-font text-3xl italic">Iniciar Sesión</h2>
+            <button id="close-login" class="text-gray-400 hover:text-fashion-black transition-colors">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Formulario -->
+        <form class="space-y-6 flex-1" action="../modelos/agregar-usuario.php" method="POST">
+            <div class="space-y-2">
+                <label class="text-xs uppercase tracking-widest font-semibold text-gray-500">Email</label>
+                <input type="email"
+                    class="w-full  py-2 text-fashion-black focus:outline-none focus:border-fashion-black transition-colors bg-transparent"
+                    id="formName" placeholder="tu@email.com">
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-xs uppercase tracking-widest font-semibold text-gray-500">Contraseña</label>
+                <input type="password"
+                    class="w-full py-2 text-fashion-black focus:outline-none focus:border-fashion-black transition-colors bg-transparent "
+                    id="formPassword" placeholder="••••••••">
+            </div>
+
+            <div class="flex justify-between items-center text-xs text-gray-500 pt-2 checkboxForm" id="checkboxForm">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" class="rounded border-gray-300 text-fashion-black focus:ring-fashion-black ">
+                    <span>Recordarme</span>
+                </label>
+                <a href="#" class="hover:text-fashion-black underline underline-offset-4">¿Olvidaste tu
+                    contraseña?</a>
+            </div>
+
+            <button type="submit"
+                class=" w-full bg-fashion-black text-white py-4 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-fashion-accent transition-colors mt-8 rounded rounded-lg">
+                Entrar
+            </button>
+        </form>
+
+        <!-- Footer del Sidebar -->
+        <div class="border-t border-gray-100 pt-8 text-center">
+            <p class="text-sm text-gray-500 mb-4">¿Aún no tienes cuenta?</p>
+            <a href="#"
+                class="inline-block border border-fashion-black text-fashion-black px-8 py-3 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-fashion-black hover:text-white transition-all duration-300">
+                Crear Cuenta
+            </a>
+        </div>
+
+    </div>

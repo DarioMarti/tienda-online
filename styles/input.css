@@ -2,111 +2,116 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Estilos personalizados que se mantienen */
-body {
-    background-color: #FFFFFF;
-    color: #111;
-    font-family: 'Jost', sans-serif;
-    overflow-x: hidden;
+/* ESTILOS GLOBALES */
+
+
+.bton {
+    padding: 10px;
+    background-color: black;
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-/* Tipografía Editorial */
-h1,
-h2,
-h3,
-h4,
-.editorial-font {
-    font-family: 'Bodoni Moda', serif;
+.bton:hover {
+    background-color: rgb(212 175 55 / var(--tw-text-opacity, 1));
+    color: white;
 }
 
-/* Header Transición */
-#main-header {
-    transition: all 0.4s ease;
+
+
+
+
+/*FORMULARIO DE LOGIN*/
+.login-sidebar {
+    position: fixed;
+    background-color: white;
+    right: 0;
+    padding: 20px;
+    height: 100vh;
+    width: 400px;
+    z-index: 50;
+    transition-property: transform;
+    transition-duration: 500ms;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-.scrolled {
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(5px);
-    padding-top: 15px !important;
-    padding-bottom: 15px !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+.login-sidebar-open {
+    transform: translateX(0);
 }
 
-/* Marquee (Texto que corre) */
-.marquee-container {
-    overflow: hidden;
-    white-space: nowrap;
+.login-sidebar-close {
+    transform: translateX(100%);
 }
 
-.marquee-content {
-    display: inline-block;
-    animation: marquee 30s linear infinite;
+
+#login-sidebar #formPassword,
+#login-sidebar #formName {
+    padding: 10px 20px;
+    background-color: #f5f5f5;
 }
 
-@keyframes marquee {
+
+
+/*PÁGINA USUARIO REGISTRADO*/
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+
+@keyframes checkDraw {
     0% {
-        transform: translateX(0);
+        stroke-dasharray: 0, 100;
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
     }
 
     100% {
-        transform: translateX(-50%);
+        stroke-dasharray: 100, 0;
+        opacity: 1;
     }
 }
 
-/* Estilos personalizados para el Sidebar */
-.sidebar-link {
-    position: relative;
-    display: inline-block;
-    transition: color 0.3s ease;
+.animate-check {
+    animation: checkDraw 0.8s ease-out 0.3s both;
 }
 
-.sidebar-link::before {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 1px;
-    bottom: 0;
-    left: 0;
-    background-color: #D4AF37;
-    transition: width 0.3s ease;
+
+@keyframes pingSlow {
+    0% {
+        transform: scale(1);
+        opacity: 0.2;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.1;
+    }
+
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
 }
 
-.sidebar-link:hover {
-    color: #D4AF37;
-    padding-left: 5px;
-}
-
-.sidebar-link:hover::before {
-    width: 100%;
-}
-
-/* Checkbox personalizado */
-.custom-checkbox {
-    appearance: none;
-    background-color: #fff;
-    margin: 0;
-    font: inherit;
-    color: currentColor;
-    width: 1.15em;
-    height: 1.15em;
-    border: 1px solid #ccc;
-    display: grid;
-    place-content: center;
-    margin-right: 0.5em;
-    cursor: pointer;
-}
-
-.custom-checkbox::before {
-    content: "";
-    width: 0.65em;
-    height: 0.65em;
-    transform: scale(0);
-    transition: 120ms transform ease-in-out;
-    box-shadow: inset 1em 1em #D4AF37;
-    transform-origin: center;
-    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-}
-
-.custom-checkbox:checked::before {
-    transform: scale(1);
+.animate-ping-slow {
+    animation: pingSlow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
