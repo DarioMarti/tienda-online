@@ -1,5 +1,3 @@
-rel="stylesheet">
-
 <!-- Iconos Phosphor -->
 <script src="https://unpkg.com/phosphor-icons"></script>
 

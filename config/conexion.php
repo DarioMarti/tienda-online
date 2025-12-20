@@ -2,10 +2,14 @@
 
 function conectar()
 {
-    define("HOST", "localhost");
-    define("USER", "root");
-    define("PASS", "");
-    define("DB", "tienda_ropa");
+    if (!defined("HOST"))
+        define("HOST", "localhost");
+    if (!defined("USER"))
+        define("USER", "root");
+    if (!defined("PASS"))
+        define("PASS", "");
+    if (!defined("DB"))
+        define("DB", "tienda_ropa");
 
     try {
         $dsn = "mysql:host=" . HOST . ";dbname=" . DB . ";charset=utf8mb4";

@@ -1,23 +1,17 @@
 <?php
 session_start();
-require("../config/conexion.php");
-
+require("../modelos/usuarios/mostrar-usuarios.php");
+require("../modelos/categorias/mostrar-categoria.php");
 // Verificación de seguridad: Solo administradores
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
     header("Location: index.php");
     exit;
 }
 
-$conn = conectar();
 
 // Obtener usuarios para la gestión
-try {
-    $stmt = $conn->query("SELECT * FROM usuarios ORDER BY fecha_creacion DESC");
-    $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    $usuarios = [];
-    $error = "Error al cargar usuarios: " . $e->getMessage();
-}
+$usuarios = mostrarUsuarios();
+$categorias = mostrarCategorias();
 
 include 'Cabecera.php';
 ?>
@@ -178,6 +172,11 @@ include 'Cabecera.php';
                                                 class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
                                                 <i class="ph ph-pencil-simple text-xl"></i>
                                             </button>
+                                            <button
+                                                onclick="deleteUser(<?= $user['id'] ?>, '<?= htmlspecialchars($user['nombre']) ?>')"
+                                                class="text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
+                                                <i class="ph ph-trash text-xl"></i>
+                                            </button>
                                         <?php else: ?>
                                             <span class="text-xs text-gray-400 italic">Tú</span>
                                         <?php endif; ?>
@@ -190,7 +189,7 @@ include 'Cabecera.php';
             </div>
         </section>
 
-        <!-- Secciones Placeholder con Botones -->
+        <!-- Secciones Placeholder con Botones PEDIDOS -->
         <section id="pedidos-section" class="tab-content hidden">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="font-editorial text-4xl italic text-fashion-black">Gestión de Pedidos</h1>
@@ -227,10 +226,76 @@ include 'Cabecera.php';
                     <i class="ph ph-plus mr-2"></i>Nueva Categoría
                 </button>
             </div>
-            <div class="bg-white p-12 rounded-lg shadow-xl text-center">
-                <i class="ph ph-tag text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500 uppercase tracking-widest">Próximamente</p>
+
+            <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200">
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Nombre
+                                </th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Descripción
+                                </th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Categoría Padre
+                                </th>
+                                <th
+                                    class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500 text-right">
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <?php foreach ($categorias as $categoria): ?>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="font-semibold text-fashion-black">
+                                            <?= htmlspecialchars($categoria['nombre']) ?>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-500">
+                                            <?= htmlspecialchars($categoria['descripcion']) ?>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-600">
+                                            <?= htmlspecialchars($categoria['categoria_padre_id'] ?? '-') ?>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right space-x-2">
+                                        <button onclick='editCategory(<?= json_encode($categoria) ?>)'
+                                            class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
+                                            <i class="ph ph-pencil-simple text-xl"></i>
+                                        </button>
+                                        <button
+                                            onclick="deleteCategory(<?= $categoria['id'] ?>, '<?= htmlspecialchars($categoria['nombre']) ?>')"
+                                            class="text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
+                                            <i class="ph ph-trash text-xl"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
         </section>
 
     </main>
@@ -305,8 +370,77 @@ include 'Cabecera.php';
     </div>
 </div>
 
-<script>
-    const currentUserId = <?= $_SESSION['usuario']['id'] ?>;
-</script>
+<!-- Modal Categoría (Crear/Editar) -->
+<div id="category-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center">
+            <h2 id="category-modal-title" class="font-editorial text-3xl italic text-fashion-black">Nueva Categoría</h2>
+            <button onclick="closeCategoryModal()" class="text-gray-400 hover:text-fashion-black transition-colors">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+
+        <form id="category-form" action="../modelos/categorias/crear-categoria.php" method="POST" class="p-8">
+            <input type="hidden" name="category_id" id="category_id">
+            <input type="hidden" name="action" id="category_form_action" value="create">
+
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Nombre</label>
+                    <input type="text" name="nombre" id="cat_nombre" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Descripción</label>
+                    <textarea name="descripcion" id="cat_descripcion" rows="3"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black"></textarea>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Categoría Padre</label>
+                    <select name="categoria_padre_id" id="cat_parent_id"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black bg-white">
+                        <option value="">Ninguna (Categoría Principal)</option>
+                        <?php foreach ($categorias as $categoria): ?>
+                            <option value="<?php echo $categoria['id']; ?>"><?php echo $categoria['nombre']; ?></option>
+                        <?php endforeach; ?>
+                        <!-- Las categorías se cargarían dinámicamente aquí -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-4 mt-8">
+                <button type="button" onclick="closeCategoryModal()"
+                    class="flex-1 bg-gray-200 text-gray-700 py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-gray-300 transition-all rounded-lg">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="flex-1 bg-fashion-black text-white py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-fashion-accent transition-all rounded-lg shadow-lg">
+                    Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Notificación -->
+<!-- Modal Notificación -->
+<div id="notification-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+    style="z-index: 9999;">
+    <div class="bg-white rounded-lg shadow-2xl w-[300px] p-6 text-center transform transition-all scale-100 relative">
+        <div id="notification-icon" class="mb-4 text-4xl flex justify-center">
+            <!-- Icono dinámico -->
+        </div>
+        <h3 id="notification-title" class="text-lg font-editorial italic text-fashion-black mb-2"></h3>
+        <p id="notification-message" class="text-gray-600 text-xs mb-6"></p>
+
+        <button onclick="closeNotificationModal()"
+            class="w-full bg-fashion-black text-white py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-colors rounded">
+            Entendido
+        </button>
+    </div>
+</div>
+
 <script src="../animaciones/admin-dashboard.js"></script>
 <?php include 'Footer.html'; ?>

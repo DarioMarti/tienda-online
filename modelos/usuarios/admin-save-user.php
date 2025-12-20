@@ -76,11 +76,17 @@ try {
         $stmt->execute($params);
     }
 
-    // Redirigir de vuelta al dashboard
-    header("Location: ../../src/admin-page.php");
+    // Redirigir de vuelta al dashboard con éxito
+    $msg = ($action === 'create') ? 'Usuario creado correctamente' : 'Usuario actualizado correctamente';
+    header("Location: ../../src/admin-page.php?status=success&message=" . urlencode($msg) . "&tab=usuarios");
     exit;
 
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage();
+    // Redirigir con error
+    header("Location: ../../src/admin-page.php?status=error&message=" . urlencode("Error de base de datos: " . $e->getMessage()) . "&tab=usuarios");
+    exit;
+} catch (Exception $e) {
+    header("Location: ../../src/admin-page.php?status=error&message=" . urlencode($e->getMessage()) . "&tab=usuarios");
+    exit;
 }
 ?>
