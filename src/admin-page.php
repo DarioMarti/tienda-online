@@ -284,18 +284,6 @@ include 'Cabecera.php';
                 </div>
             </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
         </section>
 
     </main>
@@ -439,6 +427,28 @@ include 'Cabecera.php';
             class="w-full bg-fashion-black text-white py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-colors rounded">
             Entendido
         </button>
+    </div>
+</div>
+
+<!-- Modal Confirmación Eliminar -->
+<div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style="z-index: 9999;">
+    <div class="bg-white rounded-lg shadow-2xl w-[300px] p-6 text-center transform transition-all scale-100 relative">
+        <div class="mb-4 text-4xl flex justify-center">
+            <i class="ph ph-warning-circle text-red-500"></i>
+        </div>
+        <h3 class="text-lg font-editorial italic text-fashion-black mb-2">¿Estás seguro?</h3>
+        <p id="delete-message" class="text-gray-600 text-xs mb-6"></p>
+        
+        <div class="flex gap-2 justify-center">
+            <button onclick="closeDeleteModal()" 
+                class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-gray-300 transition-colors rounded">
+                Cancelar
+            </button>
+            <button onclick="confirmDelete()" 
+                class="flex-1 bg-red-600 text-white py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-red-700 transition-colors rounded">
+                Eliminar
+            </button>
+        </div>
     </div>
 </div>
 

@@ -104,10 +104,35 @@ userModal.addEventListener('click', (e) => {
     }
 });
 
-function deleteUser(id, nombre) {
-    if (confirm(`¿Estás seguro de que deseas eliminar al usuario "${nombre}"? Esta acción no se puede deshacer.`)) {
-        window.location.href = `../modelos/usuarios/admin-eliminar-usuario.php?id=${id}`;
+// Gestión del Modal de Eliminación
+const deleteModal = document.getElementById('delete-modal');
+const deleteMessage = document.getElementById('delete-message');
+let deleteTargetUrl = '';
+
+function openDeleteModal(url, message) {
+    if (!deleteModal) return;
+    deleteTargetUrl = url;
+    deleteMessage.textContent = message;
+    deleteModal.classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    if (deleteModal) {
+        deleteModal.classList.add('hidden');
+        deleteTargetUrl = '';
     }
+}
+
+function confirmDelete() {
+    if (deleteTargetUrl) {
+        window.location.href = deleteTargetUrl;
+    }
+}
+
+function deleteUser(id, nombre) {
+    const url = `../modelos/usuarios/admin-eliminar-usuario.php?id=${id}`;
+    const msg = `¿Deseas eliminar al usuario "${nombre}"? Esta acción no se puede deshacer.`;
+    openDeleteModal(url, msg);
 }
 
 // Placeholder functions for new buttons
@@ -133,7 +158,9 @@ function openCategoryModal() {
     // Resetear formulario
     categoryForm.reset();
     categoryModalTitle.textContent = 'Nueva Categoría';
-    categoryFormAction.value = 'create';
+    // Set Action to Create
+    categoryForm.action = '../modelos/categorias/crear-categoria.php';
+
     categoryIdInput.value = '';
 }
 
@@ -147,7 +174,9 @@ function editCategory(category) {
 
     // Cambiar título y acción
     categoryModalTitle.textContent = 'Editar Categoría';
-    categoryFormAction.value = 'update';
+    // Set Action to Update
+    categoryForm.action = '../modelos/categorias/modificar-categoria.php';
+
     categoryIdInput.value = category.id;
 
     // Rellenar datos
@@ -157,9 +186,9 @@ function editCategory(category) {
 }
 
 function deleteCategory(id, nombre) {
-    if (confirm(`¿Estás seguro de que deseas eliminar la categoría "${nombre}"? Esta acción no se puede deshacer.`)) {
-        window.location.href = `../modelos/categorias/eliminar-categoria.php?id=${id}`;
-    }
+    const url = `../modelos/categorias/eliminar-categoria.php?id=${id}`;
+    const msg = `¿Deseas eliminar la categoría "${nombre}"? Esta acción no se puede deshacer.`;
+    openDeleteModal(url, msg);
 }
 
 // Cerrar modal al hacer clic fuera
