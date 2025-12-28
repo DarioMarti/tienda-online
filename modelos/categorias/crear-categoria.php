@@ -1,21 +1,30 @@
 <?php
-
+header('Content-Type: application/json');
 require('../../config/conexion.php');
+
+session_start();
+
+// Verificar permisos de admin
+if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+    echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
+    exit;
+}
 
 try {
     $conn = conectar();
 
-    $action = $_POST['action'] ?? 'create';
-    $id = $_POST['category_id'] ?? null;
     $nombre = $_POST['nombre'] ?? '';
     $descripcion = $_POST['descripcion'] ?? '';
     $categoria_padre_id = !empty($_POST['categoria_padre_id']) ? $_POST['categoria_padre_id'] : null;
 
+    if (empty($nombre)) {
+        throw new Exception("El nombre es obligatorio.");
+    }
+
     // Validar duplicados
     $sqlCheck = "SELECT id FROM categorias WHERE nombre = :nombre";
-    $paramsCheck = [':nombre' => $nombre];
     $stmtCheck = $conn->prepare($sqlCheck);
-    $stmtCheck->execute($paramsCheck);
+    $stmtCheck->execute([':nombre' => $nombre]);
 
     if ($stmtCheck->fetch()) {
         throw new Exception("Ya existe una categoría con el nombre '$nombre'.");
@@ -40,13 +49,17 @@ try {
         ':categoria_padre_id' => $categoria_padre_id
     ]);
 
-    $msg = "Categoría creada correctamente";
-
-    header("Location: ../../src/admin-page.php?status=success&message=" . urlencode($msg) . "&tab=categorias");
+    echo json_encode([
+        'success' => true,
+        'message' => "Categoría creada correctamente"
+    ]);
     exit;
 
 } catch (Exception $e) {
-    header("Location: ../../src/admin-page.php?status=error&message=" . urlencode("Error: " . $e->getMessage()) . "&tab=categorias");
+    echo json_encode([
+        'success' => false,
+        'message' => "Error: " . $e->getMessage()
+    ]);
     exit;
 }
 ?>

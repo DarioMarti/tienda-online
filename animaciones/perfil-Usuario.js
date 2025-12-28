@@ -1,3 +1,4 @@
+
 const editBtn = document.getElementById('edit-profile-btn');
 const modal = document.getElementById('edit-modal');
 const closeModalBtn = document.getElementById('close-modal');
@@ -251,44 +252,57 @@ function updateProfileData(data) {
 }
 
 // === LÓGICA PARA ELIMINAR CUENTA ===
-const deleteBtn = document.getElementById('eliminar-cuenta');
-const deleteModal = document.getElementById('delete-account-modal');
-const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+{
+    const deleteBtn = document.getElementById('eliminar-cuenta');
+    const profileDeleteModal = document.getElementById('delete-account-modal');
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 
-if (deleteBtn) {
-    deleteBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (deleteModal) {
-            deleteModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (profileDeleteModal) {
+                profileDeleteModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+
+    function closeProfileDeleteModal() {
+        if (profileDeleteModal) {
+            profileDeleteModal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
         }
-    });
-}
+    }
 
-function closeDeleteModal() {
-    if (deleteModal) {
-        deleteModal.classList.add('hidden');
-        document.body.style.overflow = 'auto';
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', closeProfileDeleteModal);
+    }
+
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', () => {
+            // Redirigir al script de eliminación
+            window.location.href = '../modelos/usuarios/eliminar-usuario.php';
+        });
+    }
+
+    // Cerrar al hacer clic fuera del modal
+    if (profileDeleteModal) {
+        profileDeleteModal.addEventListener('click', (e) => {
+            if (e.target === profileDeleteModal) {
+                closeProfileDeleteModal();
+            }
+        });
     }
 }
 
-if (cancelDeleteBtn) {
-    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+
+
+// CONTAR LOS PEDIDOS DEL USUARIO (Datos pasados desde PHP)
+if (typeof userOrders !== 'undefined') {
+    userOrders.forEach(pedido => {
+        console.log('Pedido:', pedido);
+    });
+    console.log('Total pedidos:', userOrders.length);
 }
 
-if (confirmDeleteBtn) {
-    confirmDeleteBtn.addEventListener('click', () => {
-        // Redirigir al script de eliminación
-        window.location.href = '../modelos/usuarios/eliminar-usuario.php';
-    });
-}
-
-// Cerrar al hacer clic fuera del modal
-if (deleteModal) {
-    deleteModal.addEventListener('click', (e) => {
-        if (e.target === deleteModal) {
-            closeDeleteModal();
-        }
-    });
-}

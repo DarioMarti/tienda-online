@@ -22,7 +22,7 @@
 
             <!-- Menú Izquierda -->
             <nav class="hidden lg:flex space-x-8 text-xs uppercase tracking-widest font-medium">
-                <a href="#"
+                <a href="index.php"
                     class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Inicio - Aetheria' ? 'text-fashion-accent' : '' ?>">
                     Home
                 </a>
@@ -62,7 +62,7 @@
                             <a href="perfil-page.php"
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">Mi
                                 Perfil</a>
-                            <a href="#"
+                            <a href="mis-pedidos-page.php"
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">Mis
                                 Pedidos</a>
 

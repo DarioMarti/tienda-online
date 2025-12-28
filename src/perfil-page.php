@@ -7,6 +7,16 @@ if (!isset($_SESSION['usuario'])) {
 }
 
 $usuario = $_SESSION['usuario'];
+require_once "../modelos/pedidos/mostrar-pedidos.php";
+$pedidos = mostrarPedidos($usuario['id']);
+
+$totalGastado = 0;
+foreach ($pedidos as $pedido) {
+    if ($pedido['estado'] !== 'cancelado') {
+        $totalGastado += $pedido['coste_total'];
+    }
+}
+
 include 'Cabecera.php';
 ?>
 
@@ -104,19 +114,59 @@ include 'Cabecera.php';
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="font-editorial text-2xl italic text-fashion-black">Mis Pedidos</h2>
                         <span class="text-xs uppercase tracking-widest text-gray-500 font-semibold">
-                            <i class="ph ph-package mr-2"></i>0 Pedidos
+                            <i class="ph ph-package mr-2"></i><?= count($pedidos) ?> Pedidos
                         </span>
+
                     </div>
 
-                    <!-- Lista de Pedidos (vacía por ahora) -->
-                    <div class="text-center py-12">
-                        <i class="ph ph-shopping-bag text-6xl text-gray-300 mb-4"></i>
-                        <p class="text-gray-500 text-sm uppercase tracking-widest">No tienes pedidos aún</p>
-                        <a href="index.php"
-                            class="inline-block mt-4 text-fashion-black hover:text-fashion-accent transition-colors text-xs uppercase tracking-widest font-semibold underline underline-offset-4">
-                            Explorar Productos
-                        </a>
-                    </div>
+                    <!-- Lista de Pedidos -->
+                    <?php if (empty($pedidos)): ?>
+                        <div class="text-center py-12">
+                            <i class="ph ph-shopping-bag text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500 text-sm uppercase tracking-widest">No tienes pedidos aún</p>
+                            <a href="index.php"
+                                class="inline-block mt-4 text-fashion-black hover:text-fashion-accent transition-colors text-xs uppercase tracking-widest font-semibold underline underline-offset-4">
+                                Explorar Productos
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500">
+                                            ID</th>
+                                        <th class="px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500">
+                                            Fecha</th>
+                                        <th class="px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500">
+                                            Estado</th>
+                                        <th
+                                            class="px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500 text-right">
+                                            Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <?php foreach ($pedidos as $pedido): ?>
+                                        <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="px-4 py-3 font-bold text-fashion-black">#<?= $pedido['id'] ?></td>
+                                            <td class="px-4 py-3 text-xs text-gray-500">
+                                                <?= date('d/m/Y', strtotime($pedido['fecha'])) ?></td>
+                                            <td class="px-4 py-3">
+                                                <span
+                                                    class="px-2 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider 
+                                                    <?= $pedido['estado'] === 'entregado' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700' ?>">
+                                                    <?= $pedido['estado'] ?>
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 text-right font-bold text-fashion-black">
+                                                <?= number_format($pedido['coste_total'], 2) ?>€</td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+
                 </div>
 
             </div>
@@ -161,11 +211,12 @@ include 'Cabecera.php';
                     <div class="space-y-4">
                         <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                             <span class="text-xs uppercase tracking-widest text-gray-500">Total Pedidos</span>
-                            <span class="text-2xl font-bold text-fashion-black">0</span>
+                            <span class="text-2xl font-bold text-fashion-black"><?= count($pedidos) ?></span>
                         </div>
                         <div class="flex justify-between items-center pb-3 border-b border-gray-200">
                             <span class="text-xs uppercase tracking-widest text-gray-500">Total Gastado</span>
-                            <span class="text-2xl font-bold text-fashion-black">0€</span>
+                            <span
+                                class="text-2xl font-bold text-fashion-black"><?= number_format($totalGastado, 2) ?>€</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-xs uppercase tracking-widest text-gray-500">Miembro Desde</span>
@@ -382,6 +433,12 @@ include 'Cabecera.php';
     </div>
 </div>
 
+
+<script>
+    // Pasar datos de pedidos a JS
+    const userOrders = <?php echo json_encode($pedidos); ?>;
+</script>
+<script src="../animaciones/perfil-Usuario.js"></script>
 <?php
 include 'Footer.html';
 ?>

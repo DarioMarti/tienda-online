@@ -1,7 +1,12 @@
+<!DOCTYPE html>
 <?php
+require_once '../config/conexion.php';
 session_start();
 require("../modelos/usuarios/mostrar-usuarios.php");
 require("../modelos/categorias/mostrar-categoria.php");
+require("../modelos/productos/mostrar-productos.php");
+require("../modelos/pedidos/mostrar-pedidos.php");
+
 // Verificación de seguridad: Solo administradores
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
     header("Location: index.php");
@@ -12,9 +17,23 @@ if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
 // Obtener usuarios para la gestión
 $usuarios = mostrarUsuarios();
 $categorias = mostrarCategorias();
+$productos = mostrarProductos();
+$pedidos = mostrarPedidos();
+$totalVentas = 0;
+
+foreach ($pedidos as $pedido) {
+    $totalVentas += $pedido['coste_total'];
+}
+
 
 include 'Cabecera.php';
 ?>
+
+<script>
+    // Pasar ID del administrador actual a JS para protecciones de edición
+    const currentUserId = <?= $_SESSION['usuario']['id'] ?>;
+    const allProducts = <?php echo json_encode($productos); ?>;
+</script>
 
 <div class="min-h-screen bg-fashion-gray flex">
 
@@ -64,7 +83,7 @@ include 'Cabecera.php';
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="text-xs uppercase tracking-widest text-gray-500 mb-1">Total Ventas</p>
-                            <h3 class="text-2xl font-bold text-fashion-black">0€</h3>
+                            <h3 class="text-2xl font-bold text-fashion-black"><?= $totalVentas ?>€</h3>
                         </div>
                         <div class="p-2 bg-green-100 rounded-full text-green-600">
                             <i class="ph ph-currency-eur text-xl"></i>
@@ -75,7 +94,7 @@ include 'Cabecera.php';
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="text-xs uppercase tracking-widest text-gray-500 mb-1">Pedidos</p>
-                            <h3 class="text-2xl font-bold text-fashion-black">0</h3>
+                            <h3 class="text-2xl font-bold text-fashion-black"><?= count($pedidos) ?></h3>
                         </div>
                         <div class="p-2 bg-blue-100 rounded-full text-blue-600">
                             <i class="ph ph-shopping-bag text-xl"></i>
@@ -97,7 +116,7 @@ include 'Cabecera.php';
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="text-xs uppercase tracking-widest text-gray-500 mb-1">Productos</p>
-                            <h3 class="text-2xl font-bold text-fashion-black">0</h3>
+                            <h3 class="text-2xl font-bold text-fashion-black"><?= count($productos) ?></h3>
                         </div>
                         <div class="p-2 bg-orange-100 rounded-full text-orange-600">
                             <i class="ph ph-tag text-xl"></i>
@@ -189,7 +208,6 @@ include 'Cabecera.php';
             </div>
         </section>
 
-        <!-- Secciones Placeholder con Botones PEDIDOS -->
         <section id="pedidos-section" class="tab-content hidden">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="font-editorial text-4xl italic text-fashion-black">Gestión de Pedidos</h1>
@@ -198,11 +216,89 @@ include 'Cabecera.php';
                     <i class="ph ph-plus mr-2"></i>Nuevo Pedido
                 </button>
             </div>
-            <div class="bg-white p-12 rounded-lg shadow-xl text-center">
-                <i class="ph ph-package text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500 uppercase tracking-widest">Próximamente</p>
+            <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200">
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">ID
+                                </th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Cliente</th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Fecha</th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Total</th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Estado</th>
+                                <th
+                                    class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500 text-right">
+                                    Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <?php if (empty($pedidos)): ?>
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center text-gray-500 text-sm">No hay pedidos
+                                        registrados.</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($pedidos as $pedido): ?>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-fashion-black">#<?= $pedido['id'] ?></td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm font-semibold text-fashion-black">
+                                                <?= htmlspecialchars($pedido['nombre_destinatario']) ?>
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                <?= htmlspecialchars($pedido['usuario_email'] ?? 'Venta Anónima') ?>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">
+                                            <?= date('d/m/Y H:i', strtotime($pedido['fecha'])) ?>
+                                        </td>
+                                        <td class="px-6 py-4 font-bold text-fashion-black">
+                                            <?= number_format($pedido['coste_total'], 2) ?> €
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <?php
+                                            $estadoClass = [
+                                                'pendiente' => 'bg-yellow-100 text-yellow-700',
+                                                'pagado' => 'bg-green-100 text-green-700',
+                                                'enviado' => 'bg-blue-100 text-blue-700',
+                                                'entregado' => 'bg-purple-100 text-purple-700',
+                                                'cancelado' => 'bg-red-100 text-red-700'
+                                            ][$pedido['estado']] ?? 'bg-gray-100 text-gray-700';
+                                            ?>
+                                            <span
+                                                class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider <?= $estadoClass ?>">
+                                                <?= ucfirst($pedido['estado']) ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right space-x-2">
+                                            <button onclick="viewOrderDetails(<?= $pedido['id'] ?>)"
+                                                class="text-gray-400 hover:text-fashion-accent transition-colors"
+                                                title="Ver Detalles">
+                                                <i class="ph ph-eye text-xl"></i>
+                                            </button>
+                                            <button onclick='editOrder(<?= json_encode($pedido) ?>)'
+                                                class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
+                                                <i class="ph ph-pencil-simple text-xl"></i>
+                                            </button>
+                                            <button onclick="deleteOrder(<?= $pedido['id'] ?>)"
+                                                class="text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
+                                                <i class="ph ph-trash text-xl"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
+
 
         <section id="productos-section" class="tab-content hidden">
             <div class="flex justify-between items-center mb-8">
@@ -212,9 +308,109 @@ include 'Cabecera.php';
                     <i class="ph ph-plus mr-2"></i>Nuevo Producto
                 </button>
             </div>
-            <div class="bg-white p-12 rounded-lg shadow-xl text-center">
-                <i class="ph ph-t-shirt text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500 uppercase tracking-widest">Próximamente</p>
+            <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200">
+                                <th
+                                    class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500 w-20">
+                                    Imagen</th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Producto</th>
+                                <th
+                                    class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500 w-1/3">
+                                    Descripción</th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Precio</th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Stock</th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Categoría</th>
+                                <th
+                                    class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500 text-right">
+                                    Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <?php if (empty($productos)): ?>
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center text-gray-500 text-sm">
+                                        No hay productos registrados.
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($productos as $producto): ?>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4">
+                                            <div class="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden">
+                                                <?php if (!empty($producto['imagen'])): ?>
+                                                    <img src="../<?= htmlspecialchars($producto['imagen']) ?>"
+                                                        alt="<?= htmlspecialchars($producto['nombre']) ?>"
+                                                        class="w-full h-full object-cover">
+                                                <?php else: ?>
+                                                    <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                                        <i class="ph ph-image text-2xl"></i>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="font-semibold text-fashion-black">
+                                                <?= htmlspecialchars($producto['nombre']) ?>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <?php if (!empty($producto['descripcion'])): ?>
+                                                <div class="text-xs text-gray-500 line-clamp-3">
+                                                    <?= htmlspecialchars($producto['descripcion']) ?>
+                                                </div>
+                                            <?php else: ?>
+                                                <span class="text-xs text-gray-400 italic">Sin descripción</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="font-bold text-fashion-black">
+                                                <?= number_format($producto['precio'], 2) ?> €
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider 
+                                                <?= $producto['stock'] > 10 ? 'bg-green-100 text-green-700' : ($producto['stock'] > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') ?>">
+                                                <?= $producto['stock'] ?> uds
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">
+                                            <?php
+                                            // Buscar nombre de categoría
+                                            $categoriaNombre = 'Sin categoría';
+                                            foreach ($categorias as $cat) {
+                                                if ($cat['id'] == $producto['categoria_id']) {
+                                                    $categoriaNombre = $cat['nombre'];
+                                                    break;
+                                                }
+                                            }
+                                            echo htmlspecialchars($categoriaNombre);
+                                            ?>
+                                        </td>
+                                        <td class="px-6 py-4 text-right space-x-2">
+                                            <button onclick='editProduct(<?= json_encode($producto) ?>)'
+                                                class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
+                                                <i class="ph ph-pencil-simple text-xl"></i>
+                                            </button>
+                                            <button
+                                                onclick="deleteProduct(<?= $producto['id'] ?>, '<?= htmlspecialchars($producto['nombre']) ?>')"
+                                                class="text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
+                                                <i class="ph ph-trash text-xl"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -311,7 +507,7 @@ include 'Cabecera.php';
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Apellidos</label>
-                    <input type="text" name="apellidos" id="apellidos" required
+                    <input type="text" name="apellidos" id="apellidos"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
                 </div>
                 <div class="space-y-2 md:col-span-2">
@@ -385,6 +581,7 @@ include 'Cabecera.php';
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black"></textarea>
                 </div>
 
+
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Categoría Padre</label>
                     <select name="categoria_padre_id" id="cat_parent_id"
@@ -412,8 +609,221 @@ include 'Cabecera.php';
     </div>
 </div>
 
+<!-- Modal Pedido (Crear/Editar) -->
+<div id="order-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center">
+            <h2 id="order-modal-title" class="font-editorial text-3xl italic text-fashion-black">Nuevo Pedido</h2>
+            <button onclick="closeOrderModal()" class="text-gray-400 hover:text-fashion-black transition-colors">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+
+        <form id="order-form" action="../modelos/pedidos/crear-pedido.php" method="POST" class="p-8">
+            <input type="hidden" name="pedido_id" id="order_id">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Email Usuario</label>
+                    <input type="email" name="usuario_email" id="order_usuario_email" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black"
+                        placeholder="Email del cliente">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Coste Total (€)</label>
+                    <input type="number" step="0.01" name="coste_total" id="order_coste_total" required readonly
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:border-fashion-black font-bold">
+                </div>
+
+                <!-- Sección de Productos Dinámicos -->
+                <div class="md:col-span-2 mt-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-xs uppercase tracking-widest font-bold text-gray-500">Artículos del Pedido</h4>
+                        <button type="button" onclick="addProductRow()"
+                            class="text-xs bg-fashion-black text-white px-4 py-2 rounded hover:bg-fashion-accent transition-colors flex items-center gap-2">
+                            <i class="ph ph-plus"></i> Añadir Producto
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500">
+                                        Producto</th>
+                                    <th
+                                        class="px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500 w-24">
+                                        Cant.</th>
+                                    <th
+                                        class="px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500 text-right w-24">
+                                        Precio</th>
+                                    <th
+                                        class="px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500 text-right w-24">
+                                        Subtotal</th>
+                                    <th
+                                        class="px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-gray-500 text-center w-12">
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-items-builder" class="divide-y divide-gray-100">
+                                <!-- Filas de productos dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="space-y-2 md:col-span-2">
+                    <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Nombre
+                        Destinatario</label>
+                    <input type="text" name="nombre_destinatario" id="order_nombre_destinatario" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
+                </div>
+                <div class="space-y-2 md:col-span-2">
+                    <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Dirección Envío</label>
+                    <textarea name="direccion_envio" id="order_direccion_envio" required rows="2"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black"></textarea>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Ciudad</label>
+                    <input type="text" name="ciudad" id="order_ciudad" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Provincia</label>
+                    <input type="text" name="provincia" id="order_provincia" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
+                </div>
+                <div class="space-y-2 md:col-span-2">
+                    <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Estado</label>
+                    <select name="estado" id="order_estado" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black bg-white">
+                        <option value="pendiente">Pendiente</option>
+                        <option value="pagado">Pagado</option>
+                        <option value="enviado">Enviado</option>
+                        <option value="entregado">Entregado</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Aviso Global de Stock -->
+            <div id="order-stock-warning" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex gap-3">
+                    <i class="ph ph-warning-circle text-red-500 text-xl"></i>
+                    <div>
+                        <p class="text-sm font-bold text-red-700">Stock Insuficiente</p>
+                        <ul class="text-xs text-red-600 list-disc ml-4 mt-1" id="stock-warning-list">
+                            <!-- Errores dinámicos -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 mt-8">
+
+                <button type="button" onclick="closeOrderModal()"
+                    class="flex-1 bg-gray-200 text-gray-700 py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-gray-300 transition-all rounded-lg">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="flex-1 bg-fashion-black text-white py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-fashion-accent transition-all rounded-lg shadow-lg">
+                    Guardar Pedido
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Modal Detalles de Pedido -->
+<div id="order-details-modal"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center z-10">
+            <div>
+                <h2 class="font-editorial text-3xl italic text-fashion-black">Detalles del Pedido <span
+                        id="view_order_id"></span></h2>
+                <p class="text-gray-500 text-sm mt-1" id="view_order_date"></p>
+            </div>
+            <button onclick="closeOrderDetailsModal()" class="text-gray-400 hover:text-fashion-black transition-colors">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+
+        <div class="p-8">
+            <!-- Información del Cliente -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-100">
+                    <h3 class="text-xs uppercase tracking-widest font-bold text-gray-500 mb-4">Información del Cliente
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <p><span class="font-semibold text-gray-700">Nombre:</span> <span
+                                id="view_customer_name"></span></p>
+                        <p><span class="font-semibold text-gray-700">Email:</span> <span
+                                id="view_customer_email"></span></p>
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold text-gray-700">Estado:</span>
+                            <span id="view_order_status_badge"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-100">
+                    <h3 class="text-xs uppercase tracking-widest font-bold text-gray-500 mb-4">Dirección de Envío</h3>
+                    <div class="space-y-2 text-sm">
+                        <p id="view_shipping_address" class="text-gray-700"></p>
+                        <p id="view_shipping_location" class="text-gray-700"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Productos -->
+            <div>
+                <h3 class="text-xs uppercase tracking-widest font-bold text-gray-500 mb-4">Artículos del Pedido</h3>
+                <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-100">
+                                <th class="px-6 py-3 text-xs uppercase tracking-widest font-bold text-gray-500">Producto
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-xs uppercase tracking-widest font-bold text-gray-500 text-center">
+                                    Cantidad</th>
+                                <th
+                                    class="px-6 py-3 text-xs uppercase tracking-widest font-bold text-gray-500 text-right">
+                                    Precio Unit.</th>
+                                <th
+                                    class="px-6 py-3 text-xs uppercase tracking-widest font-bold text-gray-500 text-right">
+                                    Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order_items_list" class="divide-y divide-gray-100">
+                            <!-- Los items se cargarán dinámicamente -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray-50 font-bold border-t-2 border-fashion-black">
+                                <td colspan="3" class="px-6 py-4 text-right uppercase tracking-widest text-xs">Total del
+                                    Pedido</td>
+                                <td class="px-6 py-4 text-right text-xl text-fashion-black" id="view_order_total">0.00 €
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-8">
+                <button onclick="closeOrderDetailsModal()"
+                    class="bg-fashion-black text-white py-3 px-8 text-xs uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-all rounded-lg shadow-lg">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Notificación -->
-<!-- Modal Notificación -->
+
 <div id="notification-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
     style="z-index: 9999;">
     <div class="bg-white rounded-lg shadow-2xl w-[300px] p-6 text-center transform transition-all scale-100 relative">
@@ -431,20 +841,21 @@ include 'Cabecera.php';
 </div>
 
 <!-- Modal Confirmación Eliminar -->
-<div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style="z-index: 9999;">
+<div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+    style="z-index: 9999;">
     <div class="bg-white rounded-lg shadow-2xl w-[300px] p-6 text-center transform transition-all scale-100 relative">
         <div class="mb-4 text-4xl flex justify-center">
             <i class="ph ph-warning-circle text-red-500"></i>
         </div>
         <h3 class="text-lg font-editorial italic text-fashion-black mb-2">¿Estás seguro?</h3>
         <p id="delete-message" class="text-gray-600 text-xs mb-6"></p>
-        
+
         <div class="flex gap-2 justify-center">
-            <button onclick="closeDeleteModal()" 
+            <button onclick="closeDeleteModal()"
                 class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-gray-300 transition-colors rounded">
                 Cancelar
             </button>
-            <button onclick="confirmDelete()" 
+            <button onclick="confirmDelete()"
                 class="flex-1 bg-red-600 text-white py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-red-700 transition-colors rounded">
                 Eliminar
             </button>
@@ -452,5 +863,208 @@ include 'Cabecera.php';
     </div>
 </div>
 
-<script src="../animaciones/admin-dashboard.js"></script>
+<!-- Estilos para ocultar flechas de inputs numéricos -->
+<style>
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+
+<!-- Modal Producto (Crear/Editar) -->
+<div id="product-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div style="max-width: 1200px;"
+        class="bg-white rounded-xl shadow-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
+        <!-- Header -->
+        <div class="sticky top-0 bg-white border-b border-gray-100 px-8 py-6 flex justify-between items-center z-10">
+            <div>
+                <h2 id="product-modal-title" class="font-editorial text-3xl italic text-fashion-black">Nuevo Producto
+                </h2>
+                <p class="text-gray-500 text-sm mt-1">Completa los detalles del producto</p>
+            </div>
+            <button onclick="closeProductModal()"
+                class="text-gray-400 hover:text-fashion-black transition-colors p-2 hover:bg-gray-100 rounded-full">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Form -->
+        <form id="product-form" action="../modelos/productos/agregar-producto.php" method="POST"
+            enctype="multipart/form-data" class="p-8">
+            <input type="hidden" id="product_id" name="product_id">
+            <input type="hidden" id="product_form_action" name="action" value="create">
+
+            <!-- Grid: Imagen | Datos -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-8">
+
+                <!-- Columna Izquierda: Imagen CUADRADA -->
+                <div class="flex flex-col">
+                    <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-3">
+                        Imagen del Producto
+                    </label>
+
+                    <!-- Contenedor Cuadrado -->
+                    <div id="drop-zone" class="relative w-full cursor-pointer group" style="padding-bottom: 100%;">
+                        <input type="file" id="prod_imagen" name="imagen" accept="image/*" class="hidden"
+                            onchange="previewImage(this)">
+
+                        <!-- Área de Drop (llena todo el cuadrado) -->
+                        <div id="image-preview-container"
+                            class="absolute inset-0 bg-gray-50 rounded-lg border-2 border-gray-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-fashion-black">
+
+                            <!-- Placeholder -->
+                            <div id="upload-placeholder" class="text-center space-y-4">
+                                <div
+                                    class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-md mx-auto group-hover:scale-110 transition-transform">
+                                    <i
+                                        class="ph ph-upload-simple text-4xl text-gray-400 group-hover:text-fashion-black"></i>
+                                </div>
+                                <div>
+                                    <p class="text-base font-bold text-fashion-black">Arrastra o selecciona una imagen
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-2 uppercase tracking-wide">JPG, PNG, WEBP</p>
+                                </div>
+                            </div>
+
+                            <!-- Preview Image (llena todo el cuadrado) -->
+                            <img id="image-preview" src="#" alt="Vista previa"
+                                class="hidden absolute inset-0 w-full h-full object-cover z-10">
+
+                            <!-- Overlay Hover -->
+                            <div id="change-image-overlay"
+                                class="hidden absolute inset-0 bg-black bg-opacity-50 items-center justify-center group-hover:flex z-20">
+                                <p
+                                    class="text-white font-semibold text-sm bg-black bg-opacity-60 px-4 py-2 rounded-full">
+                                    Cambiar Imagen
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Datos del Producto -->
+                <div class="flex flex-col gap-6 relative z-30 pointer-events-auto">
+
+                    <!-- Nombre -->
+                    <div class="space-y-2">
+                        <label for="prod_nombre"
+                            class="block text-xs uppercase tracking-widest font-bold text-gray-500">
+                            Nombre del Producto
+                        </label>
+                        <input type="text" id="prod_nombre" name="nombre" required
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-fashion-black focus:ring-0 transition-all text-fashion-black font-medium"
+                            placeholder="Ej: Camiseta Básica Oversize">
+                    </div>
+
+                    <!-- Precio y Stock -->
+                    <div class="grid grid-cols-2 gap-4">
+
+                        <!-- Precio -->
+                        <div class="space-y-2">
+                            <label for="prod_precio"
+                                class="block text-xs uppercase tracking-widest font-bold text-gray-500">
+                                Precio (€)
+                            </label>
+                            <div
+                                class="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden focus-within:border-fashion-black transition-colors">
+                                <input type="number" id="prod_precio" name="precio" required step="0.50" min="0"
+                                    value="0.00"
+                                    class="w-full bg-transparent border-none pl-4 pr-2 py-3 px-3 focus:ring-0 text-fashion-black font-bold appearance-none">
+                                <div class="flex border-l border-gray-200">
+                                    <button type="button" onclick="adjustValue('prod_precio', -0.5)"
+                                        class="p-2 hover:bg-gray-100 text-gray-500 border-r border-gray-100">
+                                        <i class="ph ph-minus text-xs"></i>
+                                    </button>
+                                    <button type="button" onclick="adjustValue('prod_precio', 0.5)"
+                                        class="p-2 hover:bg-gray-100 text-gray-500">
+                                        <i class="ph ph-plus text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tallas y Stock -->
+                        <div class="col-span-2 grid grid-cols-2 gap-4">
+                            <!-- Stock Global -->
+                            <div class="space-y-2">
+                                <label for="prod_stock"
+                                    class="block text-xs uppercase tracking-widest font-bold text-gray-500">
+                                    Stock Total
+                                </label>
+                                <input type="number" id="prod_stock" name="stock" value="0" min="0" required
+                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-fashion-black focus:ring-0 transition-all text-fashion-black font-bold appearance-none">
+                            </div>
+
+                            <!-- Tallas -->
+                            <div class="space-y-2">
+                                <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
+                                    Tallas Disponibles
+                                </label>
+                                <div id="sizes-container"
+                                    class="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200 relative z-50">
+                                    <!-- Las filas de tallas se añadirán aquí dinámicamente -->
+                                </div>
+                                <button type="button" id="add-size-btn"
+                                    class="mt-2 text-xs font-bold uppercase tracking-widest text-fashion-black border border-fashion-black px-4 py-2 hover:bg-fashion-black hover:text-white transition-colors">
+                                    + Añadir Talla
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Categoría -->
+                    <div class="space-y-2">
+                        <label for="prod_categoria_id"
+                            class="block text-xs uppercase tracking-widest font-bold text-gray-500">
+                            Categoría
+                        </label>
+                        <select id="prod_categoria_id" name="categoria_id" required
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-fashion-black focus:ring-0 transition-all text-fashion-black cursor-pointer">
+                            <option value="">Seleccionar Categoría</option>
+                            <?php foreach ($categorias as $cat): ?>
+                                <option value="<?= htmlspecialchars($cat['id']) ?>">
+                                    <?= htmlspecialchars($cat['nombre']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="space-y-2">
+                        <label for="prod_descripcion"
+                            class="block text-xs uppercase tracking-widest font-bold text-gray-500">
+                            Descripción del Producto
+                        </label>
+                        <textarea id="prod_descripcion" name="descripcion" rows="6"
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-fashion-black focus:ring-0 transition-all resize-none text-fashion-black"
+                            placeholder="Describe los detalles, materiales, tallas y cuidados del producto..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Botones -->
+            <div class="flex gap-4 pt-6 border-t border-gray-100">
+                <button type="button" onclick="closeProductModal()"
+                    class="flex-1 bg-gray-200 text-gray-700 py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-gray-300 transition-all rounded-lg">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="flex-1 bg-fashion-black text-white py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-fashion-accent transition-all rounded-lg shadow-lg">
+                    Guardar Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../animaciones/admin-dashboard.js?v=3.5"></script>
 <?php include 'Footer.html'; ?>

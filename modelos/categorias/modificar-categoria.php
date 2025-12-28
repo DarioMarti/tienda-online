@@ -1,5 +1,13 @@
 <?php
+header('Content-Type: application/json');
 require('../../config/conexion.php');
+session_start();
+
+// Verificar permisos de admin
+if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+    echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
+    exit;
+}
 
 try {
     $conn = conectar();
@@ -50,12 +58,17 @@ try {
         ':id' => $id
     ]);
 
-    $msg = "Categoría actualizada correctamente";
-    header("Location: ../../src/admin-page.php?status=success&message=" . urlencode($msg) . "&tab=categorias");
+    echo json_encode([
+        'success' => true,
+        'message' => "Categoría actualizada correctamente"
+    ]);
     exit;
 
 } catch (Exception $e) {
-    header("Location: ../../src/admin-page.php?status=error&message=" . urlencode("Error: " . $e->getMessage()) . "&tab=categorias");
+    echo json_encode([
+        'success' => false,
+        'message' => "Error: " . $e->getMessage()
+    ]);
     exit;
 }
 ?>

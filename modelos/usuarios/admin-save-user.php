@@ -76,17 +76,25 @@ try {
         $stmt->execute($params);
     }
 
-    // Redirigir de vuelta al dashboard con éxito
+    // Respuesta de éxito
     $msg = ($action === 'create') ? 'Usuario creado correctamente' : 'Usuario actualizado correctamente';
-    header("Location: ../../src/admin-page.php?status=success&message=" . urlencode($msg) . "&tab=usuarios");
+    echo json_encode([
+        'success' => true,
+        'message' => $msg
+    ]);
     exit;
 
 } catch (PDOException $e) {
-    // Redirigir con error
-    header("Location: ../../src/admin-page.php?status=error&message=" . urlencode("Error de base de datos: " . $e->getMessage()) . "&tab=usuarios");
+    echo json_encode([
+        'success' => false,
+        'message' => "Error de base de datos: " . $e->getMessage()
+    ]);
     exit;
 } catch (Exception $e) {
-    header("Location: ../../src/admin-page.php?status=error&message=" . urlencode($e->getMessage()) . "&tab=usuarios");
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
     exit;
 }
 ?>
