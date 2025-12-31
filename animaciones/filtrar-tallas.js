@@ -3,54 +3,48 @@
 // Se asume que 'tallasSeleccionadas' se define globalmente en la vista antes de cargar este script
 
 function toggleTalla(talla, btnElement) {
-    // Asegurarnos de que existe la variable global, si no, inicializarla
-    if (typeof tallasSeleccionadas === 'undefined') {
-        console.error("Error: tallasSeleccionadas no está definido.");
-        return;
+    if (typeof window.tallasSeleccionadas === 'undefined') {
+        window.tallasSeleccionadas = [];
     }
 
-    const index = tallasSeleccionadas.indexOf(talla);
+    // Asegurarse de que es un array (en caso de que PHP mandara un objeto o string por error)
+    if (!Array.isArray(window.tallasSeleccionadas)) {
+        window.tallasSeleccionadas = Object.values(window.tallasSeleccionadas);
+    }
+
+    const index = window.tallasSeleccionadas.indexOf(talla.toString());
 
     if (index === -1) {
-        // Si no está, la añadimos
-        tallasSeleccionadas.push(talla);
-        // Actualizar UI - Activo
+        window.tallasSeleccionadas.push(talla.toString());
         btnElement.classList.remove('bg-white', 'text-black', 'border-gray-200');
         btnElement.classList.add('bg-black', 'text-white', 'border-black');
     } else {
-        // Si está, la quitamos
-        tallasSeleccionadas.splice(index, 1);
-        // Actualizar UI - Inactivo
+        window.tallasSeleccionadas.splice(index, 1);
         btnElement.classList.remove('bg-black', 'text-white', 'border-black');
         btnElement.classList.add('bg-white', 'text-black', 'border-gray-200');
     }
-
-    console.log("Tallas seleccionadas:", tallasSeleccionadas);
 }
 
 function aplicarFiltros() {
-    // Construir URL con parámetros
     const url = new URL(window.location.href);
 
-    // Limpiar params anteriores de talla para reconstruirlos
+    // Eliminar parámetros viejos de talla (soporta tanto 'tallas' como 'tallas[]')
     url.searchParams.delete('tallas[]');
+    url.searchParams.delete('tallas');
 
-    // Añadir nuevos params de tallas
-    if (typeof tallasSeleccionadas !== 'undefined') {
-        tallasSeleccionadas.forEach(talla => {
+    if (Array.isArray(window.tallasSeleccionadas)) {
+        window.tallasSeleccionadas.forEach(talla => {
             url.searchParams.append('tallas[]', talla);
         });
     }
 
-    // Añadir param de precio
     const priceSlider = document.getElementById('filter-price-slider');
     if (priceSlider) {
         url.searchParams.set('precio', priceSlider.value);
     }
 
-    // Mantener el orden si existe (ya está en window.location.href, pero por seguridad)
-    // Si se quisiera resetear paginación, etc, este es el sitio.
+    // Resetear página al filtrar para evitar que se quede en una página vacía
+    url.searchParams.delete('pagina');
 
-    // Recargar página
     window.location.href = url.toString();
 }

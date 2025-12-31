@@ -2,7 +2,7 @@
 
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
 
-function mostrarProductos($orden = '', $tallas = [], $categoria = '', $precio = null, $soloActivos = true, $search = '')
+function mostrarProductos($orden = '', $tallas = [], $categoria = '', $precio = null, $soloActivos = true, $search = '', $soloRebajas = false)
 {
     $conn = conectar();
 
@@ -12,6 +12,11 @@ function mostrarProductos($orden = '', $tallas = [], $categoria = '', $precio = 
     // FILTRADO POR ESTADO (BORRADO LÓGICO)
     if ($soloActivos) {
         $where[] = 'p.activo = 1';
+    }
+
+    // FILTRADO POR REBAJAS
+    if ($soloRebajas) {
+        $where[] = 'p.descuento > 0';
     }
 
     // FILTRAR POR VARIAS TALLAS
@@ -30,7 +35,7 @@ function mostrarProductos($orden = '', $tallas = [], $categoria = '', $precio = 
 
     // FILTRAR POR PRECIO MÁXIMO
     if ($precio !== null && $precio !== '') {
-        $where[] = 'p.precio <= ?';
+        $where[] = '(p.precio * (1 - COALESCE(p.descuento, 0) / 100)) <= ?';
         $params[] = floatval($precio);
     }
 
@@ -50,10 +55,10 @@ function mostrarProductos($orden = '', $tallas = [], $categoria = '', $precio = 
     $ordenSQL = '';
     switch ($orden) {
         case 'precio_asc':
-            $ordenSQL = 'ORDER BY p.precio ASC';
+            $ordenSQL = 'ORDER BY (p.precio * (1 - COALESCE(p.descuento, 0) / 100)) ASC';
             break;
         case 'precio_desc':
-            $ordenSQL = 'ORDER BY p.precio DESC';
+            $ordenSQL = 'ORDER BY (p.precio * (1 - COALESCE(p.descuento, 0) / 100)) DESC';
             break;
         case 'recientes':
             $ordenSQL = 'ORDER BY p.id DESC';

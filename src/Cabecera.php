@@ -1,14 +1,22 @@
-<!-- Iconos Phosphor -->
-<script src="https://unpkg.com/phosphor-icons"></script>
+<!DOCTYPE html>
+<html lang="es">
 
-<!-- Estilos Personalizados -->
-<link rel="stylesheet" href="../styles/input.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $titulo ?? "Aetheria" ?></title>
 
-<!-- Tailwind CSS -->
-<link rel="stylesheet" href="../styles/output.css">
+    <!-- Iconos Phosphor -->
+    <script src="https://unpkg.com/phosphor-icons"></script>
 
-<!-- Favicon -->
-<link rel="icon" href="../img/home/Favicon_Aetherea.ico" type="image/x-icon">
+    <!-- Estilos Personalizados -->
+    <link rel="stylesheet" href="../styles/input.css">
+
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="../styles/output.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="../img/home/Favicon_Aetherea.ico" type="image/x-icon">
 
 </head>
 
@@ -28,6 +36,10 @@
                 <a href="index.php"
                     class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Inicio - Aetheria' ? 'text-fashion-accent' : '' ?>">
                     Home
+                </a>
+                <a href="rebajas-page.php"
+                    class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Rebajas - Aetheria' ? 'text-red-600 font-bold' : 'text-red-500' ?>">
+                    Rebajas
                 </a>
                 <a href="sobre-nosotros-page.php"
                     class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Sobre Nosotros - Aetheria' ? 'text-fashion-accent' : '' ?>">

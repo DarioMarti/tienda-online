@@ -8,10 +8,12 @@ require '../modelos/Productos/obtener-tallas-producto.php';
 require '../modelos/categorias/mostrar-categoria.php';
 
 $orden = $_GET['orden'] ?? '';
-$filtroTallas = isset($_GET['tallas']) && is_array($_GET['tallas']) ? $_GET['tallas'] : [];
+$filtroTallas = isset($_GET['tallas']) ? (is_array($_GET['tallas']) ? $_GET['tallas'] : [$_GET['tallas']]) : [];
 $filtroCategoria = $_GET['categoria'] ?? '';
 $filtroPrecio = $_GET['precio'] ?? 500; // Valor por defecto o del GET
 $filtroBusqueda = $_GET['search'] ?? '';
+
+$tallasSeleccionadas = $filtroTallas;
 
 $productos = mostrarProductos($orden, $filtroTallas, $filtroCategoria, $filtroPrecio, true, $filtroBusqueda);
 $categorias = mostrarCategorias();
@@ -142,8 +144,7 @@ $categorias = mostrarCategorias();
 
                             <?php
                             $tallas = array_unique(mostrarTallas(), SORT_REGULAR);
-                            $tallasSeleccionadas = $_GET['tallas'] ?? []; // Recuperar tallas seleccionadas de la URL
-                            
+
                             foreach ($tallas as $talla) {
                                 $tallaValor = $talla['talla'];
                                 // Comprobar si esta talla está actualmente seleccionada

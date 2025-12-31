@@ -30,7 +30,6 @@ foreach ($pedidos as $pedido) {
     }
 }
 ?>
-<!DOCTYPE html>
 <?php
 include 'Cabecera.php';
 ?>
