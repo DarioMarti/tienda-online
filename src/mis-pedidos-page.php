@@ -7,7 +7,8 @@ if (!isset($_SESSION['usuario'])) {
 }
 
 $usuario = $_SESSION['usuario'];
-require_once "../modelos/pedidos/obtener-detalle-pedido.php";
+require_once "../modelos/pedidos/mostrar-pedidos.php";
+$pedidos = mostrarPedidos($usuario['id']);
 
 $titulo = "Mis Pedidos - Aetheria";
 include 'Cabecera.php';
@@ -113,17 +114,16 @@ include 'Cabecera.php';
                                 </div>
                             </div>
 
-                            <!-- Visual Mockup of Items (Simulado) -->
-                            <div class="mt-8 pt-8 border-t border-gray-50 flex items-center gap-4">
-                                <div class="w-16 h-20 bg-fashion-gray rounded-md flex items-center justify-center">
-                                    <i class="ph ph-image text-gray-300 text-2xl"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-xs font-bold text-fashion-black uppercase tracking-widest">
-
-                                    </h4>
-                                    <p class="text-xs text-gray-500 mt-1">Varios artículos exclusivos</p>
-                                </div>
+                            <!-- Visualización de solo imágenes de productos -->
+                            <div class="mt-8 pt-8 border-t border-gray-50 flex flex-wrap gap-3">
+                                <?php foreach ($pedido['items'] as $item): ?>
+                                    <div class="w-16 h-20 bg-fashion-gray rounded-md overflow-hidden flex-shrink-0 border border-gray-100 group transition-all hover:shadow-md"
+                                        title="<?= htmlspecialchars($item['producto_nombre']) ?>">
+                                        <img src="../<?= htmlspecialchars($item['producto_imagen']) ?>"
+                                            class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all"
+                                            alt="<?= htmlspecialchars($item['producto_nombre']) ?>">
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
                         </div>
                     </div>

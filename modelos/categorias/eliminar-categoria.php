@@ -2,8 +2,8 @@
 require('../../config/conexion.php');
 session_start();
 
-// Verificar rol de admin
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+// Verificar permisos de admin o empleado
+if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
     header("Location: ../../index.php");
     exit;
 }
@@ -23,10 +23,10 @@ try {
         throw new Exception("No se puede eliminar esta categoría porque tiene subcategorías asociadas.");
     }
 
-    $stmt = $conn->prepare("DELETE FROM categorias WHERE id = :id");
+    $stmt = $conn->prepare("UPDATE categorias SET activo = 0 WHERE id = :id");
     $stmt->execute([':id' => $id]);
 
-    $msg = "Categoría eliminada correctamente";
+    $msg = "Categoría desactivada correctamente";
     header("Location: ../../src/admin-page.php?status=success&message=" . urlencode($msg) . "&tab=categorias");
     exit;
 

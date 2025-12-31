@@ -7,6 +7,9 @@
 <!-- Tailwind CSS -->
 <link rel="stylesheet" href="../styles/output.css">
 
+<!-- Favicon -->
+<link rel="icon" href="../img/home/Favicon_Aetherea.ico" type="image/x-icon">
+
 </head>
 
 <body class="antialiased">
@@ -17,7 +20,7 @@
     </div>
 
     <!-- HEADER -->
-    <header id="main-header" class="sticky top-0 w-full z-40 py-6 px-6 lg:px-12 transition-all duration-300">
+    <header id="main-header" class="sticky top-0 w-full z-[60] py-6 px-6 lg:px-12 transition-all duration-300">
         <div class="w-full flex justify-between items-center">
 
             <!-- Menú Izquierda -->
@@ -26,12 +29,12 @@
                     class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Inicio - Aetheria' ? 'text-fashion-accent' : '' ?>">
                     Home
                 </a>
-                <a href="#"
-                    class="hover:text-fashion-accent transition-colors font-bold <?= ($titulo ?? '') === 'Inicio - Sobre Nosotros' ? 'text-fashion-accent' : '' ?>">
+                <a href="sobre-nosotros-page.php"
+                    class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Sobre Nosotros - Aetheria' ? 'text-fashion-accent' : '' ?>">
                     Sobre Nosotros
                 </a>
-                <a href="#"
-                    class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Inicio - Contacto' ? 'text-fashion-accent' : '' ?>">
+                <a href="contacto-page.php"
+                    class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Contacto - Aetheria' ? 'text-fashion-accent' : '' ?>">
                     Contacto
                 </a>
             </nav>
@@ -66,10 +69,10 @@
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">Mis
                                 Pedidos</a>
 
-                            <?php if (htmlspecialchars($_SESSION['usuario']['rol']) == "admin"): ?>
+                            <?php if (in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])): ?>
                                 <a href="admin-page.php"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">
-                                    Panel de administrador
+                                    Panel de <?= $_SESSION['usuario']['rol'] === 'admin' ? 'administrador' : 'empleado' ?>
                                 </a>
                             <?php endif; ?>
                             <hr class="my-2">
@@ -87,14 +90,75 @@
                 <?php endif; ?>
 
                 <i class="ph ph-magnifying-glass cursor-pointer hover:scale-110 transition-transform search"
-                    id="search"></i>
-                <div class="relative cursor-pointer hover:scale-110 transition-transform">
-                    <i class="ph ph-handbag cesta"></i>
-                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-fashion-accent rounded-full"></span>
+                    id="search-trigger"></i>
+                <div class="relative cursor-pointer" id="cart-icon">
+                    <i class="ph ph-handbag cesta hover:scale-110 transition-transform"></i>
+                    <?php
+                    $total_carrito = 0;
+                    if (isset($_SESSION['carrito'])) {
+                        foreach ($_SESSION['carrito'] as $item) {
+                            $total_carrito += $item['cantidad'];
+                        }
+                    }
+                    ?>
+                    <span id="cart-count-badge"
+                        class="absolute bg-fashion-accent text-white font-bold flex items-center justify-center rounded-full z-20 <?= $total_carrito > 0 ? '' : 'hidden' ?>"
+                        style="width: 13px; height: 13px; font-size: 8px; top: -3px; right: -3px; line-height: 1; padding: 0; margin: 0; pointer-events: none;">
+                        <?= $total_carrito ?>
+                    </span>
                 </div>
             </div>
         </div>
+
+        <!-- BUSCADOR DESPLEGABLE FULL-WIDTH -->
+        <div id="search-container"
+            class="hidden absolute left-0 top-full w-full bg-white border-b border-gray-100 shadow-sm py-2 px-6 lg:px-12 z-50 transform transition-all duration-300 origin-top">
+            <div class="w-full">
+                <input type="text" id="search-input" placeholder="BUSCAR PRODUCTOS O CATEGORÍAS..."
+                    class="w-full bg-transparent border-0 text-lg md:text-2xl editorial-font italic focus:ring-0 focus:outline-none py-4 placeholder:text-[8.5px] placeholder:uppercase placeholder:tracking-[0.2em] placeholder:font-sans placeholder:not-italic">
+            </div>
+        </div>
     </header>
+
+    <!-- OVERLAY -->
+    <div id="side-overlay"
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[45] hidden transition-opacity duration-300"></div>
+
+    <!-- CART SIDEBAR -->
+    <div id="cart-sidebar" class="login-sidebar login-sidebar-close z-[50]">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="editorial-font text-3xl italic">Tu Cesta</h2>
+            <button id="close-cart" class="text-gray-400 hover:text-fashion-black transition-colors">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Items Container -->
+        <div id="cart-items-container" class="flex-1 overflow-y-auto space-y-6 mb-8 pr-2 custom-scrollbar">
+            <!-- Los items se cargarán aquí dinámicamente -->
+            <p class="text-sm text-gray-500 text-center py-10">Cargando productos...</p>
+        </div>
+
+        <!-- Footer del Carrito -->
+        <div class="border-t border-gray-100 pt-8 mt-auto">
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-xs uppercase tracking-[0.2em] font-bold text-gray-400">Subtotal</span>
+                <span id="cart-subtotal" class="text-lg font-bold">0,00 €</span>
+            </div>
+            <?php
+            $cart_empty = !isset($_SESSION['carrito']) || count($_SESSION['carrito']) == 0;
+            $checkout_url = isset($_SESSION['usuario']) ? 'checkout-page.php' : 'registro-usuario-page.php';
+            ?>
+            <a href="<?= $checkout_url ?>" id="checkout-btn"
+                class="block w-full py-4 text-center text-xs uppercase tracking-[0.25em] font-semibold transition-colors rounded-lg <?= $cart_empty ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none' : 'bg-fashion-black text-white hover:bg-fashion-accent' ?>">
+                Finalizar Compra
+            </a>
+            <button id="continue-shopping"
+                class="w-full text-center mt-4 text-[10px] uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+                Continuar Comprando
+            </button>
+        </div>
+    </div>
 
     <!-- LOGIN SIDEBAR -->
     <div id="login-sidebar" class="login-sidebar login-sidebar-close">
@@ -134,7 +198,7 @@
             </div>
 
             <button type="submit"
-                class=" w-full bg-fashion-black text-white py-4 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-fashion-accent transition-colors mt-8 rounded rounded-lg">
+                class=" w-full bg-fashion-black text-white py-4 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-fashion-accent transition-colors mt-8 rounded-lg">
                 Entrar
             </button>
         </form>

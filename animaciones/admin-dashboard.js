@@ -170,6 +170,15 @@ document.addEventListener('submit', async (e) => {
                 return;
             }
 
+            if (sizes.length === 0) {
+                showNotification('error', 'Debes introducir al menos una talla obligatoriamente.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = submitBtn.dataset.originalText;
+                }
+                return;
+            }
+
             formData.append('tallas_stock', JSON.stringify(sizes));
             console.log("[AJAX Payload] tallas_stock (JSON):", JSON.stringify(sizes));
         }
@@ -227,11 +236,32 @@ const adminDeleteModal = document.getElementById('delete-modal');
 const deleteMessage = document.getElementById('delete-message');
 let deleteTargetUrl = '';
 
-function openDeleteModal(url, message) {
+function openDeleteModal(url, message, btnText = 'Eliminar', btnColor = 'bg-red-600') {
     if (!adminDeleteModal) return;
     deleteTargetUrl = url;
     const msgEl = document.getElementById('delete-message');
     if (msgEl) msgEl.textContent = message;
+
+    const confirmBtn = document.getElementById('delete-confirm-btn');
+    if (confirmBtn) {
+        confirmBtn.textContent = btnText;
+
+        // Limpiar todas las clases de color posibles (incluyendo las de Tailwind estándar y personalizadas)
+        confirmBtn.className = confirmBtn.className.replace(/\bbg-\S+/g, '').replace(/\bhover:bg-\S+/g, '');
+
+        // Añadir las clases base necesarias (que perdimos con el replace anterior si estaban ahí)
+        confirmBtn.classList.add('flex-1', 'text-white', 'py-2', 'px-4', 'text-[10px]', 'uppercase', 'tracking-widest', 'font-semibold', 'transition-colors', 'rounded');
+
+        // Aplicar el color específico
+        if (btnColor === 'bg-green-600' || btnColor === 'bg-emerald-600') {
+            confirmBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+        } else if (btnColor === 'bg-red-600') {
+            confirmBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+        } else {
+            confirmBtn.classList.add('bg-fashion-black', 'hover:bg-fashion-accent');
+        }
+    }
+
     adminDeleteModal.classList.remove('hidden');
 }
 
@@ -250,8 +280,38 @@ function confirmDelete() {
 
 function deleteUser(id, nombre) {
     const url = `../modelos/usuarios/admin-eliminar-usuario.php?id=${id}`;
-    const msg = `¿Deseas eliminar al usuario "${nombre}"? Esta acción no se puede deshacer.`;
-    openDeleteModal(url, msg);
+    const msg = `¿Deseas DESACTIVAR al usuario "${nombre}"? Podrás reactivarlo más tarde.`;
+    openDeleteModal(url, msg, 'Desactivar', 'bg-red-600');
+}
+
+function activateUser(id, nombre) {
+    const url = `../modelos/usuarios/activar-usuario.php?id=${id}`;
+    const msg = `¿Deseas REACTIVAR al usuario "${nombre}"?`;
+    openDeleteModal(url, msg, 'Reactivar', 'bg-emerald-600');
+}
+
+function deleteProduct(id, nombre) {
+    const url = `../modelos/productos/eliminar-producto.php?id=${id}`;
+    const msg = `¿Deseas DESACTIVAR el producto "${nombre}"? Dejará de ser visible en la tienda.`;
+    openDeleteModal(url, msg, 'Desactivar', 'bg-red-600');
+}
+
+function activateProduct(id, nombre) {
+    const url = `../modelos/productos/activar-producto.php?id=${id}`;
+    const msg = `¿Deseas REACTIVAR el producto "${nombre}"? Volverá a estar visible en la tienda.`;
+    openDeleteModal(url, msg, 'Reactivar', 'bg-emerald-600');
+}
+
+function deleteCategory(id, nombre) {
+    const url = `../modelos/categorias/eliminar-categoria.php?id=${id}`;
+    const msg = `¿Deseas DESACTIVAR la categoría "${nombre}"?`;
+    openDeleteModal(url, msg, 'Desactivar', 'bg-red-600');
+}
+
+function activateCategory(id, nombre) {
+    const url = `../modelos/categorias/activar-categoria.php?id=${id}`;
+    const msg = `¿Deseas REACTIVAR la categoría "${nombre}"?`;
+    openDeleteModal(url, msg, 'Reactivar', 'bg-emerald-600');
 }
 
 // Placeholder functions for new buttons
@@ -442,7 +502,8 @@ function addProductRow(itemData = null) {
     let options = '<option value="">Seleccionar Producto...</option>';
     allProducts.forEach(p => {
         const selected = (itemData && itemData.producto_id == p.id) ? 'selected' : '';
-        options += `<option value="${p.id}" data-precio="${p.precio}" ${selected}>${p.nombre}</option>`;
+        const statusLabel = parseInt(p.activo) === 0 ? ' (Inactivo)' : '';
+        options += `<option value="${p.id}" data-precio="${p.precio}" ${selected}>${p.nombre}${statusLabel}</option>`;
     });
 
     tr.innerHTML = `
@@ -852,6 +913,7 @@ function editProduct(producto) {
 
     document.getElementById('prod_nombre').value = producto.nombre;
     document.getElementById('prod_precio').value = producto.precio;
+    document.getElementById('prod_descuento').value = producto.descuento || 0;
     document.getElementById('prod_stock').value = producto.stock;
     document.getElementById('prod_categoria_id').value = producto.categoria_id;
     document.getElementById('prod_descripcion').value = producto.descripcion;
@@ -938,8 +1000,26 @@ function editCategory(category) {
 
 function deleteCategory(id, nombre) {
     const url = `../modelos/categorias/eliminar-categoria.php?id=${id}`;
-    const msg = `¿Deseas eliminar la categoría "${nombre}"? Esta acción no se puede deshacer.`;
+    const msg = `¿Deseas eliminar la categoría "${nombre}"? Esta acción la marcará como inactiva.`;
     openDeleteModal(url, msg);
+}
+
+function activateCategory(id, nombre) {
+    const url = `../modelos/categorias/activar-categoria.php?id=${id}`;
+    const msg = `¿Deseas reactivar la categoría "${nombre}"?`;
+    openDeleteModal(url, msg, 'Reactivar', 'bg-green-600');
+}
+
+function deleteOrder(id) {
+    const url = `../modelos/pedidos/eliminar-pedido.php?id=${id}&redirect=true`;
+    const msg = `¿Deseas mandar el pedido #${id} a la papelera (baja lógica)?`;
+    openDeleteModal(url, msg);
+}
+
+function activateOrder(id) {
+    const url = `../modelos/pedidos/activar-pedido.php?id=${id}&redirect=true`;
+    const msg = `¿Deseas reactivar el pedido #${id}?`;
+    openDeleteModal(url, msg, 'Reactivar', 'bg-green-600');
 }
 
 // Cerrar modal al hacer clic fuera

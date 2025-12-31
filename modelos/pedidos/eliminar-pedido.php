@@ -3,8 +3,8 @@ header('Content-Type: application/json');
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
 session_start();
 
-// Verificar seguridad: Solo administradores
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+// Verificar seguridad: Solo administradores y empleados
+if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
     echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
     exit();
 }
@@ -33,11 +33,14 @@ try {
         }
     }
 
-    // 2. Eliminar pedido (los detalles se eliminan por ON DELETE CASCADE o manualmente si no hay FK)
-    // Asumiremos que es mejor borrar detalles explícitamente si no estamos seguros de la FK
-    $conn->prepare("DELETE FROM detalles_pedido WHERE pedido_id = ?")->execute([$id]);
-    $stmt = $conn->prepare("DELETE FROM pedidos WHERE id = ?");
+    // 2. Eliminación Lógica (Baja Lógica)
+    // No borramos físicamente, solo marcamos activo = 0
+    // Opcional: También cambiar estado a 'cancelado' si se desea, pero baja lógica implica ocultado.
+
+    $stmt = $conn->prepare("UPDATE pedidos SET activo = 0 WHERE id = ?");
     $stmt->execute([$id]);
+
+    // No necesitamos borrar detalles_pedido físicamente si usamos baja lógica en el padre.
 
     $conn->commit();
 

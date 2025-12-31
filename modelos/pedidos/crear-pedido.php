@@ -3,8 +3,8 @@ header('Content-Type: application/json');
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
 session_start();
 
-// Verificar seguridad: Solo administradores
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+// Verificar seguridad: Solo administradores y empleados
+if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
     echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
     exit();
 }

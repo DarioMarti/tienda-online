@@ -6,7 +6,7 @@ header('Content-Type: application/json');
 ob_start();
 
 // Validar seguridad
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
     ob_end_clean();
     echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
     exit();
@@ -24,6 +24,7 @@ try {
     $nombre = $_POST['nombre'] ?? '';
     $descripcion = $_POST['descripcion'] ?? '';
     $precio = floatval($_POST['precio'] ?? 0);
+    $descuento = floatval($_POST['descuento'] ?? 0);
     $stock = intval($_POST['stock'] ?? 0);
     $categoria_id = !empty($_POST['categoria_id']) ? intval($_POST['categoria_id']) : null;
 
@@ -32,7 +33,7 @@ try {
 
     // Procesar nueva imagen si se ha subido
     if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = '../../uploads/productos/';
+        $uploadDir = '../../img/productos/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
@@ -48,7 +49,7 @@ try {
         $destPath = $uploadDir . $newFileName;
 
         if (move_uploaded_file($_FILES['imagen']['tmp_name'], $destPath)) {
-            $imagenRuta = 'uploads/productos/' . $newFileName;
+            $imagenRuta = 'img/productos/' . $newFileName;
         } else {
             throw new Exception("Error al guardar la imagen.");
         }
@@ -57,13 +58,17 @@ try {
     }
 
     // Insertar nuevo producto
-    $sentencia = "INSERT INTO productos (nombre, descripcion, precio, stock, imagen, categoria_id) VALUES (?, ?, ?, ?, ?, ?)";
+    $sentencia = "INSERT INTO productos (nombre, descripcion, precio, descuento, stock, imagen, categoria_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sentencia);
-    $stmt->execute([$nombre, $descripcion, $precio, $stock, $imagenRuta, $categoria_id]);
+    $stmt->execute([$nombre, $descripcion, $precio, $descuento, $stock, $imagenRuta, $categoria_id]);
     $producto_id = $conn->lastInsertId();
 
     // Procesar tallas
     $tallas_stock = isset($_POST['tallas_stock']) ? json_decode($_POST['tallas_stock'], true) : [];
+
+    if (empty($tallas_stock)) {
+        throw new Exception("Debes introducir al menos una talla obligatoriamente.");
+    }
 
     if (!empty($tallas_stock)) {
         $sqlTalla = "INSERT INTO producto_tallas (producto_id, talla, stock) VALUES (?, ?, ?)";

@@ -2,8 +2,8 @@
 session_start();
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
 
-// Verificación de seguridad: Solo administradores
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+// Verificación de seguridad: Solo administradores y empleados
+if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
     header("Location: ../../src/index.php");
     exit();
 }
@@ -22,20 +22,13 @@ if (isset($_GET['id'])) {
         $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($producto) {
-            // Eliminar registro de la DB
-            $stmt = $conn->prepare("DELETE FROM productos WHERE id = ?");
+            // Desactivar registro de la DB (Borrado Lógico)
+            $stmt = $conn->prepare("UPDATE productos SET activo = 0 WHERE id = ?");
             if ($stmt->execute([$id])) {
-                // Si tenía imagen, borrar el archivo
-                if (!empty($producto['imagen'])) {
-                    $imgPath = dirname(__DIR__, 2) . '/' . $producto['imagen'];
-                    if (file_exists($imgPath)) {
-                        unlink($imgPath);
-                    }
-                }
                 $success = true;
-                $message = 'Producto eliminado con éxito.';
+                $message = 'Producto desactivado con éxito.';
             } else {
-                $message = 'Error al eliminar el producto de la base de datos.';
+                $message = 'Error al desactivar el producto.';
             }
         } else {
             $message = 'El producto no existe.';

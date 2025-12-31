@@ -1,4 +1,5 @@
 <?php
+session_start();
 $titulo = "Bienvenido - Aetheria";
 include 'Cabecera.php';
 ?>

@@ -1,5 +1,33 @@
 <?php
-$titulo = "Vestido Seda Aetheria - Aetheria";
+session_start();
+require_once "../config/conexion.php";
+require_once "../modelos/productos/mostrar-productos.php";
+
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+if ($id <= 0) {
+    header("Location: index.php");
+    exit();
+}
+
+$conn = conectar();
+
+// Obtener detalles del producto (solo si está activo)
+$stmt = $conn->prepare("SELECT * FROM productos WHERE id = ? AND activo = 1");
+$stmt->execute([$id]);
+$producto = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$producto) {
+    header("Location: index.php");
+    exit();
+}
+
+// Obtener tallas del producto
+$stmtTallas = $conn->prepare("SELECT talla, stock FROM producto_tallas WHERE producto_id = ?");
+$stmtTallas->execute([$id]);
+$tallas = $stmtTallas->fetchAll(PDO::FETCH_ASSOC);
+
+$titulo = $producto['nombre'] . " - Aetheria";
 include 'Cabecera.php';
 ?>
 
@@ -9,9 +37,10 @@ include 'Cabecera.php';
         <nav class="text-[11px] uppercase tracking-widest text-gray-400 font-medium">
             <a href="index.php" class="hover:text-black transition-colors">Inicio</a>
             <span class="mx-2">/</span>
-            <a href="#" class="hover:text-black transition-colors">Colección</a>
+            <a href="index.php?categoria=<?php echo $producto['categoria_id']; ?>"
+                class="hover:text-black transition-colors">Colección</a>
             <span class="mx-2">/</span>
-            <span class="text-black">Tenuzela Azules</span>
+            <span class="text-black"><?php echo htmlspecialchars($producto['nombre']); ?></span>
         </nav>
     </div>
 
@@ -22,19 +51,8 @@ include 'Cabecera.php';
             <!-- Columna Izquierda: Imagen (50%) -->
             <div class="w-full lg:w-1/2 flex flex-col gap-4">
                 <div class="bg-gray-100 aspect-[3/4] overflow-hidden relative">
-                    <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1000&auto=format&fit=crop"
-                        alt="Vestido Principal" class="w-full h-full object-cover">
-                </div>
-                <!-- Grilla de imagenes secundaria si se desea, o solo una grande como en la referencia simple -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-100 aspect-[3/4] overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop"
-                            class="w-full h-full object-cover">
-                    </div>
-                    <div class="bg-gray-100 aspect-[3/4] overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=1000&auto=format&fit=crop"
-                            class="w-full h-full object-cover">
-                    </div>
+                    <img src="<?php echo '../' . $producto['imagen']; ?>"
+                        alt="<?php echo htmlspecialchars($producto['nombre']); ?>" class="w-full h-full object-cover">
                 </div>
             </div>
 
@@ -44,18 +62,21 @@ include 'Cabecera.php';
 
                     <!-- Cabecera -->
                     <div class="space-y-2">
-                        <h1 class="font-editorial text-4xl uppercase tracking-wide">Tenzuela Azules</h1>
-                        <p class="text-xl font-medium">129,00 €</p>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-wider pt-2">Ref. 29751-02</p>
+                        <h1 class="font-editorial text-4xl uppercase tracking-wide">
+                            <?php echo htmlspecialchars($producto['nombre']); ?>
+                        </h1>
+                        <p class="text-xl font-medium"><?php echo number_format($producto['precio'], 2, ',', '.'); ?> €
+                        </p>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-wider pt-2">Ref.
+                            <?php echo str_pad($producto['id'], 6, '0', STR_PAD_LEFT); ?>
+                        </p>
                     </div>
 
                     <div class="h-px bg-gray-200"></div>
 
                     <!-- Descripción -->
                     <div class="text-sm text-gray-600 leading-7 font-light">
-                        <p>Sandalias de tacón de ante de color azul marino con brillos. Un modelo elegante diseñado para
-                            ser el protagonista de los mejores looks de eventos. Cuenta con pulsera al tobillo que
-                            permite un ajuste óptimo.</p>
+                        <p><?php echo nl2br(htmlspecialchars($producto['descripcion'])); ?></p>
                     </div>
 
                     <!-- Botones / Selectores -->
@@ -67,23 +88,108 @@ include 'Cabecera.php';
                                 <a href="#" class="underline text-gray-400 hover:text-black">Guía de tallas</a>
                             </div>
                             <div class="grid grid-cols-5 gap-2">
-                                <button
-                                    class="py-2.5 border border-gray-300 text-xs hover:border-black transition-all">36</button>
-                                <button
-                                    class="py-2.5 border border-gray-300 text-xs hover:border-black transition-all">37</button>
-                                <button class="py-2.5 border border-black bg-black text-white text-xs">38</button>
-                                <button
-                                    class="py-2.5 border border-gray-300 text-xs hover:border-black transition-all">39</button>
-                                <button
-                                    class="py-2.5 border border-gray-300 text-xs text-gray-300 cursor-not-allowed">40</button>
+                                <?php if (!empty($tallas)): ?>
+                                    <?php foreach ($tallas as $t): ?>
+                                        <button type="button"
+                                            class="size-btn py-2.5 border border-gray-300 text-xs hover:border-black transition-all"
+                                            data-talla="<?php echo htmlspecialchars($t['talla']); ?>">
+                                            <?php echo htmlspecialchars($t['talla']); ?>
+                                        </button>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <p class="text-xs text-gray-400 italic">Sin tallas disponibles</p>
+                                <?php endif; ?>
                             </div>
                         </div>
 
                         <!-- Botón añadir -->
-                        <button
+                        <button id="add-to-cart-btn"
                             class="w-full bg-black text-white py-4 text-xs uppercase tracking-[0.2em] font-bold hover:bg-gray-800 transition-colors">
                             Añadir a la Cesta
                         </button>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                const sizeButtons = document.querySelectorAll('.size-btn');
+                                const addToCartBtn = document.getElementById('add-to-cart-btn');
+                                let selectedSize = null;
+
+                                sizeButtons.forEach(btn => {
+                                    btn.addEventListener('click', function () {
+                                        // Resetear todos los botones
+                                        sizeButtons.forEach(b => {
+                                            b.classList.remove('border-black', 'bg-black', 'text-white');
+                                            b.classList.add('border-gray-300');
+                                        });
+
+                                        // Marcar el seleccionado
+                                        this.classList.remove('border-gray-300');
+                                        this.classList.add('border-black', 'bg-black', 'text-white');
+                                        selectedSize = this.dataset.talla;
+                                    });
+                                });
+
+                                if (addToCartBtn) {
+                                    addToCartBtn.addEventListener('click', async function () {
+                                        if (!selectedSize) {
+                                            alert('Por favor, selecciona una talla primero.');
+                                            return;
+                                        }
+
+                                        const productId = <?= $id ?>;
+
+                                        try {
+                                            const response = await fetch('../modelos/carrito/agregar-carrito.php', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                                },
+                                                body: `producto_id=${productId}&talla=${encodeURIComponent(selectedSize)}&cantidad=1`
+                                            });
+
+                                            const result = await response.json();
+
+                                            if (result.success) {
+                                                // Actualizar contador en la cabecera
+                                                const badge = document.getElementById('cart-count-badge');
+                                                if (badge) {
+                                                    badge.textContent = result.total_items;
+                                                    badge.classList.remove('hidden');
+                                                }
+
+                                                // Abrir el sidebar del carrito automáticamente
+                                                if (typeof closeSidebars === 'function') closeSidebars();
+                                                const cartSidebar = document.getElementById('cart-sidebar');
+                                                const sideOverlay = document.getElementById('side-overlay');
+                                                if (cartSidebar && sideOverlay) {
+                                                    cartSidebar.classList.add('login-sidebar-open');
+                                                    cartSidebar.classList.remove('login-sidebar-close');
+                                                    sideOverlay.classList.remove('hidden');
+                                                    if (typeof loadCart === 'function') loadCart();
+                                                }
+
+                                                // Animación simple de éxito (opcional)
+                                                this.textContent = '¡Añadido!';
+                                                this.classList.remove('bg-black');
+                                                this.classList.add('bg-fashion-accent');
+
+                                                setTimeout(() => {
+                                                    this.textContent = 'Añadir a la Cesta';
+                                                    this.classList.remove('bg-fashion-accent');
+                                                    this.classList.add('bg-black');
+                                                }, 2000);
+
+                                            } else {
+                                                alert('Error: ' + result.message);
+                                            }
+                                        } catch (error) {
+                                            console.error('Error al añadir al carrito:', error);
+                                            alert('Ocurrió un error al añadir el producto a la cesta.');
+                                        }
+                                    });
+                                }
+                            });
+                        </script>
 
                         <!-- Extra info -->
                         <div class="grid grid-cols-2 gap-4 text-center py-4 border-t border-b border-gray-100">
@@ -107,9 +213,7 @@ include 'Cabecera.php';
                                 <span class="text-lg transition-transform group-open:rotate-45">+</span>
                             </summary>
                             <div class="pt-4 text-sm text-gray-500 font-light">
-                                Interior: Piel<br>
-                                Exterior: Textil<br>
-                                Suela: Goma
+                                Fabricado con los mejores materiales seleccionados por Aetheria.
                             </div>
                         </details>
                         <details class="group py-4 border-b border-gray-100 cursor-pointer">
@@ -119,7 +223,8 @@ include 'Cabecera.php';
                                 <span class="text-lg transition-transform group-open:rotate-45">+</span>
                             </summary>
                             <div class="pt-4 text-sm text-gray-500 font-light">
-                                Plazo de entrega de 2 a 4 días laborables.
+                                Plazo de entrega de 2 a 4 días laborables. Los gastos de envío son gratuitos en pedidos
+                                superiores a 150€.
                             </div>
                         </details>
                     </div>
@@ -129,72 +234,39 @@ include 'Cabecera.php';
         </div>
     </div>
 
-
     <!-- Productos Relacionados -->
     <section class="border-t border-gray-200 py-20">
         <div class="w-full mx-auto px-6">
             <h3 class="text-center font-editorial text-3xl uppercase tracking-wide mb-12">También te podría gustar</h3>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 md:gap-x-8 gap-y-12">
-                <!-- Item 1 -->
-                <article class="group cursor-pointer">
-                    <div class="overflow-hidden mb-4 relative">
-                        <img src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1000&auto=format&fit=crop"
-                            class="w-full aspect-[3/4] object-cover transition-transform duration-500 group-hover:scale-105">
-                    </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="text-sm font-medium uppercase tracking-wide">Modelo Alfa</h4>
-                            <p class="text-xs text-gray-500 mt-1">Azul Marino</p>
-                        </div>
-                        <span class="text-sm font-bold">145 €</span>
-                    </div>
-                </article>
+                <?php
+                // Obtener productos relacionados (misma categoría, activos, excluyendo el actual)
+                $stmtRel = $conn->prepare("SELECT * FROM productos WHERE categoria_id = ? AND id != ? AND activo = 1 LIMIT 4");
+                $stmtRel->execute([$producto['categoria_id'], $id]);
+                $relacionados = $stmtRel->fetchAll(PDO::FETCH_ASSOC);
 
-                <!-- Item 2 -->
-                <article class="group cursor-pointer">
-                    <div class="overflow-hidden mb-4 relative">
-                        <img src="https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?q=80&w=1000&auto=format&fit=crop"
-                            class="w-full aspect-[3/4] object-cover transition-transform duration-500 group-hover:scale-105">
-                    </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="text-sm font-medium uppercase tracking-wide">Bolso Beta</h4>
-                            <p class="text-xs text-gray-500 mt-1">Negro Mate</p>
-                        </div>
-                        <span class="text-sm font-bold">89 €</span>
-                    </div>
-                </article>
-
-                <!-- Item 3 -->
-                <article class="group cursor-pointer">
-                    <div class="overflow-hidden mb-4 relative">
-                        <img src="https://images.unsplash.com/photo-1550614000-4b9519e09eb3?q=80&w=1000&auto=format&fit=crop"
-                            class="w-full aspect-[3/4] object-cover transition-transform duration-500 group-hover:scale-105">
-                    </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="text-sm font-medium uppercase tracking-wide">Abrigo Gamma</h4>
-                            <p class="text-xs text-gray-500 mt-1">Lana Merino</p>
-                        </div>
-                        <span class="text-sm font-bold">299 €</span>
-                    </div>
-                </article>
-
-                <!-- Item 4 -->
-                <article class="group cursor-pointer">
-                    <div class="overflow-hidden mb-4 relative">
-                        <img src="https://images.unsplash.com/photo-1579613832125-5d34a13ffe2a?q=80&w=1000&auto=format&fit=crop"
-                            class="w-full aspect-[3/4] object-cover transition-transform duration-500 group-hover:scale-105">
-                    </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="text-sm font-medium uppercase tracking-wide">Collar Delta</h4>
-                            <p class="text-xs text-gray-500 mt-1">Oro 18k</p>
-                        </div>
-                        <span class="text-sm font-bold">120 €</span>
-                    </div>
-                </article>
+                foreach ($relacionados as $rel): ?>
+                    <article class="group cursor-pointer">
+                        <a href="ficha-producto.php?id=<?php echo $rel['id']; ?>" class="block">
+                            <div class="overflow-hidden mb-4 relative">
+                                <img src="<?php echo '../' . $rel['imagen']; ?>"
+                                    class="w-full aspect-[3/4] object-cover transition-transform duration-500 group-hover:scale-105"
+                                    alt="<?php echo htmlspecialchars($rel['nombre']); ?>">
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="text-sm font-medium uppercase tracking-wide">
+                                        <?php echo htmlspecialchars($rel['nombre']); ?>
+                                    </h4>
+                                    <p class="text-xs text-gray-500 mt-1">Colección Permanente</p>
+                                </div>
+                                <span class="text-sm font-bold"><?php echo number_format($rel['precio'], 2, ',', '.'); ?>
+                                    €</span>
+                            </div>
+                        </a>
+                    </article>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>

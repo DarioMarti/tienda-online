@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <?php
 require_once '../config/conexion.php';
 session_start();
@@ -6,26 +5,33 @@ require("../modelos/usuarios/mostrar-usuarios.php");
 require("../modelos/categorias/mostrar-categoria.php");
 require("../modelos/productos/mostrar-productos.php");
 require("../modelos/pedidos/mostrar-pedidos.php");
+require("../modelos/informes/obtener-informes.php");
 
-// Verificación de seguridad: Solo administradores
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+// Verificación de seguridad: Solo administradores y empleados
+if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
     header("Location: index.php");
     exit;
 }
 
-
-// Obtener usuarios para la gestión
-$usuarios = mostrarUsuarios();
-$categorias = mostrarCategorias();
-$productos = mostrarProductos();
-$pedidos = mostrarPedidos();
+// Obtener usuarios para la gestión (todos, incluidos inactivos)
+$usuarios = mostrarUsuarios(false);
+$categorias = mostrarCategorias(false); // mostrarCategorias no filtra por defecto si no le pasamos false/true? Revisar implementación. 
+// Aparentemente mostrarCategorias recibe soloActivos. Entonces false es correcto para "NO solo activos" -> "Todos".
+$productos = mostrarProductos('', [], '', null, false); // El último parámetro es "soloActivos", false = mostrar todos.
+$pedidos = mostrarPedidos(null, true);
 $totalVentas = 0;
 
+$ingresosMensuales = obtenerIngresosMensuales();
+$productosMasVendidos = obtenerProductosMasVendidos();
+
 foreach ($pedidos as $pedido) {
-    $totalVentas += $pedido['coste_total'];
+    if ($pedido['estado'] !== 'cancelado') {
+        $totalVentas += $pedido['coste_total'];
+    }
 }
-
-
+?>
+<!DOCTYPE html>
+<?php
 include 'Cabecera.php';
 ?>
 
@@ -38,9 +44,11 @@ include 'Cabecera.php';
 <div class="min-h-screen bg-fashion-gray flex">
 
     <!-- Sidebar de Navegación -->
-    <aside class="w-96 bg-white shadow-xl hidden md:block fixed h-full z-10 pt-20">
+    <aside class="w-96 bg-white shadow-xl hidden md:block sticky top-24 h-[calc(100vh-6rem)] z-10 overflow-y-auto">
         <div class="p-6">
-            <h2 class="font-editorial text-2xl italic text-fashion-black mb-8">Panel Admin</h2>
+            <h2 class="font-editorial text-2xl italic text-fashion-black mb-8">
+                Panel <?= $_SESSION['usuario']['rol'] === 'admin' ? 'Admin' : 'Empleado' ?>
+            </h2>
             <nav class="space-y-2">
                 <button onclick="switchTab('dashboard')"
                     class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm uppercase tracking-widest font-semibold text-fashion-black bg-fashion-gray transition-colors"
@@ -62,17 +70,24 @@ include 'Cabecera.php';
                     data-tab="categorias">
                     <i class="ph ph-tag mr-2"></i>Categorías
                 </button>
-                <button onclick="switchTab('usuarios')"
-                    class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm uppercase tracking-widest font-semibold text-gray-500 hover:bg-fashion-gray hover:text-fashion-black transition-colors"
-                    data-tab="usuarios">
-                    <i class="ph ph-users mr-2"></i>Usuarios
-                </button>
+                <?php if ($_SESSION['usuario']['rol'] === 'admin'): ?>
+                    <button onclick="switchTab('usuarios')"
+                        class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm uppercase tracking-widest font-semibold text-gray-500 hover:bg-fashion-gray hover:text-fashion-black transition-colors"
+                        data-tab="usuarios">
+                        <i class="ph ph-users mr-2"></i>Usuarios
+                    </button>
+                    <button onclick="switchTab('informes')"
+                        class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm uppercase tracking-widest font-semibold text-gray-500 hover:bg-fashion-gray hover:text-fashion-black transition-colors"
+                        data-tab="informes">
+                        <i class="ph ph-chart-line-up mr-2"></i>Informes
+                    </button>
+                <?php endif; ?>
             </nav>
         </div>
     </aside>
 
     <!-- Contenido Principal -->
-    <main class="flex-1 md:ml-96 p-8 pt-24">
+    <main class="flex-1 p-8 pt-24">
 
         <!-- Sección Dashboard (Resumen) -->
         <section id="dashboard-section" class="tab-content block">
@@ -126,88 +141,6 @@ include 'Cabecera.php';
             </div>
         </section>
 
-        <!-- Sección Usuarios -->
-        <section id="usuarios-section" class="tab-content hidden">
-            <div class="flex justify-between items-center mb-8">
-                <h1 class="font-editorial text-4xl italic text-fashion-black">Gestión de Usuarios</h1>
-                <button onclick="openUserModal()"
-                    class="bg-fashion-black text-white px-6 py-3 rounded-lg text-xs uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-colors shadow-lg">
-                    <i class="ph ph-plus mr-2"></i>Nuevo Usuario
-                </button>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-xl overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-200">
-                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
-                                    Nombre</th>
-                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
-                                    Email</th>
-                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">Rol
-                                </th>
-                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
-                                    Estado</th>
-                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
-                                    Fecha Registro</th>
-                                <th
-                                    class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500 text-right">
-                                    Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            <?php foreach ($usuarios as $user): ?>
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="font-semibold text-fashion-black">
-                                            <?= htmlspecialchars($user['nombre'] . ' ' . $user['apellidos']) ?>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-500"><?= htmlspecialchars($user['email']) ?>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span
-                                            class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider 
-                                        <?= $user['rol'] === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' ?>">
-                                            <?= htmlspecialchars($user['rol']) ?>
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span
-                                            class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider 
-                                        <?= $user['activo'] ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
-                                            <?= $user['activo'] ? 'Activo' : 'Inactivo' ?>
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">
-                                        <?= date('d M Y', strtotime($user['fecha_creacion'])) ?>
-                                    </td>
-                                    <td class="px-6 py-4 text-right space-x-2">
-                                        <?php if ($user['id'] !== $_SESSION['usuario']['id']): ?>
-                                            <button onclick='editUser(<?= json_encode($user) ?>)'
-                                                class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
-                                                <i class="ph ph-pencil-simple text-xl"></i>
-                                            </button>
-                                            <button
-                                                onclick="deleteUser(<?= $user['id'] ?>, '<?= htmlspecialchars($user['nombre']) ?>')"
-                                                class="text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
-                                                <i class="ph ph-trash text-xl"></i>
-                                            </button>
-                                        <?php else: ?>
-                                            <span class="text-xs text-gray-400 italic">Tú</span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
         <section id="pedidos-section" class="tab-content hidden">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="font-editorial text-4xl italic text-fashion-black">Gestión de Pedidos</h1>
@@ -244,8 +177,15 @@ include 'Cabecera.php';
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($pedidos as $pedido): ?>
-                                    <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 font-bold text-fashion-black">#<?= $pedido['id'] ?></td>
+                                    <tr
+                                        class="hover:bg-gray-50 transition-colors <?php echo ($pedido['activo'] == 0) ? 'bg-red-50 opacity-75' : ''; ?>">
+                                        <td class="px-6 py-4 font-bold text-fashion-black">
+                                            #<?= $pedido['id'] ?>
+                                            <?php if ($pedido['activo'] == 0): ?>
+                                                <span
+                                                    class="block text-[9px] text-red-600 uppercase tracking-widest mt-1">Eliminado</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td class="px-6 py-4">
                                             <div class="text-sm font-semibold text-fashion-black">
                                                 <?= htmlspecialchars($pedido['nombre_destinatario']) ?>
@@ -285,10 +225,17 @@ include 'Cabecera.php';
                                                 class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
                                                 <i class="ph ph-pencil-simple text-xl"></i>
                                             </button>
-                                            <button onclick="deleteOrder(<?= $pedido['id'] ?>)"
-                                                class="text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
-                                                <i class="ph ph-trash text-xl"></i>
-                                            </button>
+                                            <?php if ($pedido['activo'] == 1): ?>
+                                                <button onclick="deleteOrder(<?= $pedido['id'] ?>)"
+                                                    class="text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
+                                                    <i class="ph ph-trash text-xl"></i>
+                                                </button>
+                                            <?php else: ?>
+                                                <button onclick="activateOrder(<?= $pedido['id'] ?>)"
+                                                    class="text-gray-400 hover:text-green-500 transition-colors" title="Reactivar">
+                                                    <i class="ph ph-arrow-u-up-left text-xl"></i>
+                                                </button>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -327,6 +274,8 @@ include 'Cabecera.php';
                                     Stock</th>
                                 <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
                                     Categoría</th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Estado</th>
                                 <th
                                     class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500 text-right">
                                     Acciones</th>
@@ -341,9 +290,13 @@ include 'Cabecera.php';
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($productos as $producto): ?>
-                                    <tr class="hover:bg-gray-50 transition-colors">
+                                    <tr
+                                        class="hover:bg-gray-50 transition-colors <?php echo ($producto['activo'] == 0) ? 'bg-red-50 opacity-75' : ''; ?>">
                                         <td class="px-6 py-4">
-                                            <div class="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden">
+                                            <div class="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden relative">
+                                                <?php if ($producto['activo'] == 0): ?>
+                                                    <!-- Icono eliminado retirado según solicitud -->
+                                                <?php endif; ?>
                                                 <?php if (!empty($producto['imagen'])): ?>
                                                     <img src="../<?= htmlspecialchars($producto['imagen']) ?>"
                                                         alt="<?= htmlspecialchars($producto['nombre']) ?>"
@@ -358,6 +311,10 @@ include 'Cabecera.php';
                                         <td class="px-6 py-4">
                                             <div class="font-semibold text-fashion-black">
                                                 <?= htmlspecialchars($producto['nombre']) ?>
+                                                <?php if ($producto['activo'] == 0): ?>
+                                                    <span
+                                                        class="block text-[9px] text-red-600 uppercase tracking-widest mt-1">Eliminado</span>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4">
@@ -394,16 +351,31 @@ include 'Cabecera.php';
                                             echo htmlspecialchars($categoriaNombre);
                                             ?>
                                         </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider 
+                                            <?= $producto['activo'] ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
+                                                <?= $producto['activo'] ? 'Activo' : 'Inactivo' ?>
+                                            </span>
+                                        </td>
                                         <td class="px-6 py-4 text-right space-x-2">
                                             <button onclick='editProduct(<?= json_encode($producto) ?>)'
                                                 class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
                                                 <i class="ph ph-pencil-simple text-xl"></i>
                                             </button>
-                                            <button
-                                                onclick="deleteProduct(<?= $producto['id'] ?>, '<?= htmlspecialchars($producto['nombre']) ?>')"
-                                                class="text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
-                                                <i class="ph ph-trash text-xl"></i>
-                                            </button>
+                                            <?php if ($producto['activo']): ?>
+                                                <button
+                                                    onclick="deleteProduct(<?= $producto['id'] ?>, '<?= htmlspecialchars($producto['nombre']) ?>')"
+                                                    class="text-gray-400 hover:text-red-500 transition-colors" title="Desactivar">
+                                                    <i class="ph ph-trash text-xl"></i>
+                                                </button>
+                                            <?php else: ?>
+                                                <button
+                                                    onclick="activateProduct(<?= $producto['id'] ?>, '<?= htmlspecialchars($producto['nombre']) ?>')"
+                                                    class="text-gray-400 hover:text-green-500 transition-colors" title="Activar">
+                                                    <i class="ph ph-arrow-u-up-left text-xl"></i>
+                                                </button>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -437,6 +409,9 @@ include 'Cabecera.php';
                                 <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
                                     Categoría Padre
                                 </th>
+                                <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                    Estado
+                                </th>
                                 <th
                                     class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500 text-right">
                                     Acciones
@@ -445,10 +420,15 @@ include 'Cabecera.php';
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             <?php foreach ($categorias as $categoria): ?>
-                                <tr class="hover:bg-gray-50 transition-colors">
+                                <tr
+                                    class="hover:bg-gray-50 transition-colors <?php echo ($categoria['activo'] == 0) ? 'bg-red-50 opacity-75' : ''; ?>">
                                     <td class="px-6 py-4">
                                         <div class="font-semibold text-fashion-black">
                                             <?= htmlspecialchars($categoria['nombre']) ?>
+                                            <?php if ($categoria['activo'] == 0): ?>
+                                                <span
+                                                    class="block text-[9px] text-red-600 uppercase tracking-widest mt-1">Eliminado</span>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
@@ -462,16 +442,31 @@ include 'Cabecera.php';
                                             <?= htmlspecialchars($categoria['categoria_padre_id'] ?? '-') ?>
                                         </span>
                                     </td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider 
+                                        <?= $categoria['activo'] ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
+                                            <?= $categoria['activo'] ? 'Activo' : 'Inactivo' ?>
+                                        </span>
+                                    </td>
                                     <td class="px-6 py-4 text-right space-x-2">
                                         <button onclick='editCategory(<?= json_encode($categoria) ?>)'
                                             class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
                                             <i class="ph ph-pencil-simple text-xl"></i>
                                         </button>
-                                        <button
-                                            onclick="deleteCategory(<?= $categoria['id'] ?>, '<?= htmlspecialchars($categoria['nombre']) ?>')"
-                                            class="text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
-                                            <i class="ph ph-trash text-xl"></i>
-                                        </button>
+                                        <?php if ($categoria['activo']): ?>
+                                            <button
+                                                onclick="deleteCategory(<?= $categoria['id'] ?>, '<?= htmlspecialchars($categoria['nombre']) ?>')"
+                                                class="text-gray-400 hover:text-red-500 transition-colors" title="Desactivar">
+                                                <i class="ph ph-trash text-xl"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <button
+                                                onclick="activateCategory(<?= $categoria['id'] ?>, '<?= htmlspecialchars($categoria['nombre']) ?>')"
+                                                class="text-gray-400 hover:text-green-500 transition-colors" title="Activar">
+                                                <i class="ph ph-arrow-u-up-left text-xl"></i>
+                                            </button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -479,8 +474,111 @@ include 'Cabecera.php';
                     </table>
                 </div>
             </div>
-
         </section>
+
+        <?php if ($_SESSION['usuario']['rol'] === 'admin'): ?>
+            <section id="usuarios-section" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="font-editorial text-4xl italic text-fashion-black">Gestión de Usuarios</h1>
+                    <button onclick="openUserModal()"
+                        class="bg-fashion-black text-white px-6 py-3 rounded-lg text-xs uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-colors shadow-lg">
+                        <i class="ph ph-plus mr-2"></i>Nuevo Usuario
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200">
+                                    <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                        Usuario</th>
+                                    <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">Rol
+                                    </th>
+                                    <th class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500">
+                                        Estado</th>
+                                    <th
+                                        class="px-6 py-4 text-xs uppercase tracking-widest font-semibold text-gray-500 text-right">
+                                        Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <?php foreach ($usuarios as $usuario): ?>
+                                    <tr
+                                        class="hover:bg-gray-50 transition-colors <?php echo ($usuario['activo'] == 0) ? 'bg-red-50 opacity-75' : ''; ?>">
+                                        <td class="px-6 py-4">
+                                            <div class="font-semibold text-fashion-black">
+                                                <?= htmlspecialchars($usuario['nombre'] . ' ' . ($usuario['apellidos'] ?? '')) ?>
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                <?= htmlspecialchars($usuario['email']) ?>
+                                            </div>
+                                            <?php if ($usuario['activo'] == 0): ?>
+                                                <span
+                                                    class="block text-[9px] text-red-600 uppercase tracking-widest mt-1">Eliminado</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-800">
+                                                <?= htmlspecialchars($usuario['rol']) ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider <?= $usuario['activo'] ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
+                                                <?= $usuario['activo'] ? 'Activo' : 'Inactivo' ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right space-x-2">
+                                            <button onclick='editUser(<?= json_encode($usuario) ?>)'
+                                                class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
+                                                <i class="ph ph-pencil-simple text-xl"></i>
+                                            </button>
+                                            <?php if ($usuario['activo']): ?>
+                                                <button
+                                                    onclick="deleteUser(<?= $usuario['id'] ?>, '<?= htmlspecialchars($usuario['nombre']) ?>')"
+                                                    class="text-gray-400 hover:text-red-500 transition-colors" title="Desactivar">
+                                                    <i class="ph ph-trash text-xl"></i>
+                                                </button>
+                                            <?php else: ?>
+                                                <button
+                                                    onclick="activateUser(<?= $usuario['id'] ?>, '<?= htmlspecialchars($usuario['nombre']) ?>')"
+                                                    class="text-gray-400 hover:text-green-500 transition-colors" title="Activar">
+                                                    <i class="ph ph-arrow-u-up-left text-xl"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            <section id="informes-section" class="tab-content hidden">
+                <h1 class="font-editorial text-4xl italic text-fashion-black mb-8">Informes</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Gráfico de ventas (Placeholder) -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-lg font-bold mb-4">Ingresos Mensuales</h3>
+                        <div class="h-64 bg-gray-50 flex items-center justify-center text-gray-400">
+                            Gráfico de Ingresos
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-lg font-bold mb-4">Productos Más Vendidos</h3>
+                        <ul class="space-y-3">
+                            <?php foreach ($productosMasVendidos as $prod): ?>
+                                <li class="flex justify-between items-center border-b border-gray-100 pb-2">
+                                    <span><?= htmlspecialchars($prod['nombre']) ?></span>
+                                    <span class="font-bold"><?= $prod['total_vendido'] ?> uds</span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        <?php endif; ?>
 
     </main>
 </div>
@@ -527,6 +625,7 @@ include 'Cabecera.php';
                     <select name="rol" id="rol"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black bg-white">
                         <option value="cliente">Cliente</option>
+                        <option value="empleado">Empleado</option>
                         <option value="admin">Administrador</option>
                     </select>
                 </div>
@@ -855,7 +954,7 @@ include 'Cabecera.php';
                 class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-gray-300 transition-colors rounded">
                 Cancelar
             </button>
-            <button onclick="confirmDelete()"
+            <button id="delete-confirm-btn" onclick="confirmDelete()"
                 class="flex-1 bg-red-600 text-white py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-red-700 transition-colors rounded">
                 Eliminar
             </button>
@@ -990,6 +1089,24 @@ include 'Cabecera.php';
                             </div>
                         </div>
 
+                        <!-- Descuento -->
+                        <div class="space-y-2">
+                            <label for="prod_descuento"
+                                class="block text-xs uppercase tracking-widest font-bold text-gray-500">
+                                Descuento (%)
+                            </label>
+                            <div
+                                class="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden focus-within:border-fashion-black transition-colors">
+                                <input type="number" id="prod_descuento" name="descuento" value="0" min="0" max="100"
+                                    step="1"
+                                    class="w-full bg-transparent border-none pl-4 pr-2 py-3 px-3 focus:ring-0 text-fashion-black font-bold appearance-none">
+                                <div
+                                    class="flex border-l border-gray-200 px-3 bg-gray-100 text-gray-500 font-bold text-xs items-center justify-center">
+                                    %
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Tallas y Stock -->
                         <div class="col-span-2 grid grid-cols-2 gap-4">
                             <!-- Stock Global -->
@@ -1005,7 +1122,7 @@ include 'Cabecera.php';
                             <!-- Tallas -->
                             <div class="space-y-2">
                                 <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
-                                    Tallas Disponibles
+                                    Tallas Disponibles <span class="text-red-500">*</span>
                                 </label>
                                 <div id="sizes-container"
                                     class="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200 relative z-50">
@@ -1066,5 +1183,5 @@ include 'Cabecera.php';
     </div>
 </div>
 
-<script src="../animaciones/admin-dashboard.js?v=3.5"></script>
+<script src="../animaciones/admin-dashboard.js?v=3.6"></script>
 <?php include 'Footer.html'; ?>

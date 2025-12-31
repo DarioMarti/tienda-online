@@ -34,6 +34,12 @@ module.exports = {
         'bg-fashion-gray',
         'text-fashion-gray',
         'border-fashion-gray',
+        'bg-green-600',
+        'hover:bg-green-700',
+        'bg-red-600',
+        'hover:bg-red-700',
+        'bg-emerald-600',
+        'hover:bg-emerald-700',
     ],
     plugins: [],
 }

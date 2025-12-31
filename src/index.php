@@ -11,8 +11,9 @@ $orden = $_GET['orden'] ?? '';
 $filtroTallas = isset($_GET['tallas']) && is_array($_GET['tallas']) ? $_GET['tallas'] : [];
 $filtroCategoria = $_GET['categoria'] ?? '';
 $filtroPrecio = $_GET['precio'] ?? 500; // Valor por defecto o del GET
+$filtroBusqueda = $_GET['search'] ?? '';
 
-$productos = mostrarProductos($orden, $filtroTallas, $filtroCategoria, $filtroPrecio);
+$productos = mostrarProductos($orden, $filtroTallas, $filtroCategoria, $filtroPrecio, true, $filtroBusqueda);
 $categorias = mostrarCategorias();
 
 
@@ -41,6 +42,18 @@ $categorias = mostrarCategorias();
 
 <!-- BLOQUE CENTRAL -->
 <div class="w-full px-6 lg:px-12 py-16">
+
+    <!-- BUSQUEDA INFO -->
+    <?php if ($filtroBusqueda): ?>
+        <div class="w-full mb-12">
+            <p class="text-xs uppercase tracking-widest text-gray-500">
+                Resultados para: <span
+                    class="font-bold text-fashion-black">"<?= htmlspecialchars($filtroBusqueda) ?>"</span>
+                <a href="index.php" class="ml-4 text-fashion-accent hover:underline lowercase tracking-normal">Limpiar
+                    búsqueda</a>
+            </p>
+        </div>
+    <?php endif; ?>
 
     <div class="flex flex-col lg:flex-row gap-12">
 
@@ -221,34 +234,54 @@ $categorias = mostrarCategorias();
 
                 <?php foreach ($productos as $producto) { ?>
                     <div class="group cursor-pointer">
-                        <div class="relative overflow-hidden mb-4 bg-gray-50 aspect-[3/4]">
-                            <img src="<?php echo '../' . $producto['imagen']; ?>"
-                                class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                                alt="Abrigo">
+                        <a href="ficha-producto.php?id=<?php echo $producto['id']; ?>" class="block">
+                            <div class="relative overflow-hidden mb-4 bg-gray-50 aspect-[3/4]">
+                                <img src="<?php echo '../' . $producto['imagen']; ?>"
+                                    class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                    alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
 
-                            <!-- Badges -->
-                            <div class="absolute top-0 left-0 p-3">
-                                <span
-                                    class="bg-white/80 backdrop-blur text-[10px] uppercase tracking-widest px-2 py-1"><?php echo $producto['nombre']; ?></span>
-                            </div>
+                                <!-- Badges -->
+                                <div class="absolute top-0 left-0 p-3 flex flex-col gap-2 items-start">
+                                    <?php if (!empty($producto['descuento']) && $producto['descuento'] > 0): ?>
+                                        <span
+                                            class="bg-red-600 text-white text-xs font-bold px-3 py-1 text-center uppercase tracking-widest">-<?php echo intval($producto['descuento']); ?>%</span>
+                                    <?php endif; ?>
+                                </div>
 
-                            <!-- Quick Add (Aparece en hover) -->
-                            <div
-                                class="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                <button
-                                    class="w-full bg-white/90 backdrop-blur hover:bg-fashion-black hover:text-white text-fashion-black text-xs uppercase tracking-widest py-3 transition-colors">
-                                    Añadir al Carrito
-                                </button>
+                                <!-- Quick Add (Aparece en hover) -->
+                                <div
+                                    class="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                    <button
+                                        class="w-full bg-white/90 backdrop-blur hover:bg-fashion-black hover:text-white text-fashion-black text-xs uppercase tracking-widest py-3 transition-colors">
+                                        Saber más
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                         <div>
-                            <h3 class="editorial-font text-xl group-hover:text-fashion-accent transition-colors">
-                                <?php echo $producto['nombre']; ?>
-                            </h3>
+                            <a href="ficha-producto.php?id=<?php echo $producto['id']; ?>">
+                                <h3 class="editorial-font text-xl group-hover:text-fashion-accent transition-colors">
+                                    <?php echo htmlspecialchars($producto['nombre']); ?>
+                                </h3>
+                            </a>
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-1 mb-2">
-                                <?php echo $producto['descripcion']; ?>
+                                <?php echo htmlspecialchars($producto['descripcion']); ?>
                             </p>
-                            <p class="font-medium text-sm"><?php echo $producto['precio']; ?></p>
+                            <?php
+                            if (!empty($producto['descuento']) && $producto['descuento'] > 0) {
+                                $precioOriginal = $producto['precio'];
+                                $descuento = $producto['descuento'];
+                                $precioFinal = $precioOriginal - ($precioOriginal * ($descuento / 100));
+                                ?>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span
+                                        class="text-xs text-gray-400 line-through"><?php echo number_format($precioOriginal, 2); ?>€</span>
+                                    <p class="font-medium text-sm text-red-600"><?php echo number_format($precioFinal, 2); ?>€
+                                    </p>
+                                </div>
+                            <?php } else { ?>
+                                <p class="font-medium text-sm mt-1"><?php echo number_format($producto['precio'], 2); ?>€</p>
+                            <?php } ?>
                         </div>
                     </div>
                 <?php } ?>

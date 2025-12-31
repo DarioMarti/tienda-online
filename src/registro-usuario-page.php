@@ -1,4 +1,5 @@
 <?php
+session_start();
 $titulo = "Registro - Aetheria";
 include 'Cabecera.php';
 ?>

@@ -21,10 +21,10 @@ try {
         throw new Exception("No puedes eliminar tu propia cuenta de administrador desde aquí.");
     }
 
-    $stmt = $conn->prepare("DELETE FROM usuarios WHERE id = :id");
+    $stmt = $conn->prepare("UPDATE usuarios SET activo = 0 WHERE id = :id");
     $stmt->execute([':id' => $id]);
 
-    $msg = "Usuario eliminado correctamente";
+    $msg = "Usuario desactivado correctamente";
     header("Location: ../../src/admin-page.php?status=success&message=" . urlencode($msg) . "&tab=usuarios");
     exit;
 

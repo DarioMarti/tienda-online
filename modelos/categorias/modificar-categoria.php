@@ -3,8 +3,8 @@ header('Content-Type: application/json');
 require('../../config/conexion.php');
 session_start();
 
-// Verificar permisos de admin
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+// Verificar permisos de admin o empleado
+if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
     echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
     exit;
 }

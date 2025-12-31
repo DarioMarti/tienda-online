@@ -36,7 +36,7 @@ include 'Cabecera.php';
                     </p>
                 </div>
                 <span
-                    class="px-3 py-1 <?php if (htmlspecialchars($usuario['rol']) == "admin"): ?> bg-fashion-accent text-white <?php else: ?> bg-gray-100 <?php endif; ?> text-gray-600 text-xs uppercase tracking-wider rounded-full">
+                    class="px-3 py-1 <?php if (in_array($usuario['rol'], ['admin', 'empleado'])): ?> bg-fashion-accent text-white <?php else: ?> bg-gray-100 text-gray-600 <?php endif; ?> text-xs uppercase tracking-wider rounded-full">
                     <?= htmlspecialchars($usuario['rol']) ?>
                 </span>
             </div>
@@ -150,7 +150,8 @@ include 'Cabecera.php';
                                         <tr class="hover:bg-gray-50 transition-colors">
                                             <td class="px-4 py-3 font-bold text-fashion-black">#<?= $pedido['id'] ?></td>
                                             <td class="px-4 py-3 text-xs text-gray-500">
-                                                <?= date('d/m/Y', strtotime($pedido['fecha'])) ?></td>
+                                                <?= date('d/m/Y', strtotime($pedido['fecha'])) ?>
+                                            </td>
                                             <td class="px-4 py-3">
                                                 <span
                                                     class="px-2 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider 
@@ -159,7 +160,8 @@ include 'Cabecera.php';
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-right font-bold text-fashion-black">
-                                                <?= number_format($pedido['coste_total'], 2) ?>€</td>
+                                                <?= number_format($pedido['coste_total'], 2) ?>€
+                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
