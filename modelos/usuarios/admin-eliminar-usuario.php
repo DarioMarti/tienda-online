@@ -1,12 +1,9 @@
 <?php
-require('../../config/conexion.php');
-session_start();
+require_once "../../config/conexion.php";
+ob_start();
 
 // Verificar rol de admin
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
-    header("Location: ../../index.php");
-    exit;
-}
+restringirSoloAdminAPI();
 
 try {
     $conn = conectar();

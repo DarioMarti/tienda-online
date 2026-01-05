@@ -22,9 +22,6 @@ try {
 
 } catch (Exception $e) {
     error_log("Error al eliminar usuario: " . $e->getMessage());
-    // In case of error, we might want to redirect back to profile with error or show JSON if it was an AJAX call.
-    // But since this is a direct link navigation (as per previous step), we should probably redirect or show error.
-    // For now, keeping it simple as per user request.
     echo "Error al eliminar usuario.";
 }
 ?>

@@ -1,5 +1,0 @@
-<?php
-// Configuración de Stripe
-define('STRIPE_PUBLISHABLE_KEY', 'TU_CLAVE_PUBLISHABLE_AQUI');
-define('STRIPE_SECRET_KEY', 'TU_CLAVE_SECRETA_AQUI');
-?>

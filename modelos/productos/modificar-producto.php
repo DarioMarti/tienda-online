@@ -5,12 +5,8 @@ session_start();
 header('Content-Type: application/json');
 ob_start();
 
-// Validar seguridad
-if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
-    ob_end_clean();
-    echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
-    exit();
-}
+// COMPROBAR SI SE TIENE ACCESO
+restringirAccesoAPI();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ob_end_clean();
@@ -28,13 +24,12 @@ try {
     $descuento = floatval($_POST['descuento'] ?? 0);
     $stock = intval($_POST['stock'] ?? 0);
     $categoria_id = !empty($_POST['categoria_id']) ? intval($_POST['categoria_id']) : null;
-
+    $imagenRuta = '';
     if (!$product_id) {
         throw new Exception("ID de producto no proporcionado.");
     }
 
-    // Manejo de la imagen
-    $imagenRuta = '';
+    //OBTENER IMAGEN ACTUAL
     $stmt = $conn->prepare("SELECT imagen FROM productos WHERE id = ?");
     $stmt->execute([$product_id]);
     $prod_actual = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -45,55 +40,57 @@ try {
 
     $imagenRuta = $prod_actual['imagen'];
 
-    // Procesar nueva imagen si se ha subido
+    // ACTUALIZAR IMAGEN
     if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = '../../img/productos/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+        $directorioDestino = '../../img/productos/';
+        if (!is_dir($directorioDestino)) {
+            mkdir($directorioDestino, 0755, true);
         }
 
-        $fileExtension = strtolower(pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION));
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $extensionFichero = strtolower(pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION));
+        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
-        if (!in_array($fileExtension, $allowedExtensions)) {
+        if (!in_array($extensionFichero, $extensionesPermitidas)) {
             throw new Exception("Extensión de archivo no permitida.");
         }
 
-        $newFileName = md5(time() . $_FILES['imagen']['name']) . '.' . $fileExtension;
-        $destPath = $uploadDir . $newFileName;
+        $nuevoNombreFichero = md5(time() . $_FILES['imagen']['name']) . '.' . $extensionFichero;
+        $rutaDestino = $directorioDestino . $nuevoNombreFichero;
 
-        if (move_uploaded_file($_FILES['imagen']['tmp_name'], $destPath)) {
-            // Borrar imagen anterior si existía
+        if (move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaDestino)) {
+            // BORRAR IMAGEN ANTERIOR SI EXISTÍA
             if (!empty($imagenRuta)) {
-                $oldImgPath = dirname(__DIR__, 2) . '/' . $imagenRuta;
-                if (file_exists($oldImgPath)) {
-                    unlink($oldImgPath);
+                $rutaImagenAnterior = dirname(__DIR__, 2) . '/' . $imagenRuta;
+                if (file_exists($rutaImagenAnterior)) {
+                    unlink($rutaImagenAnterior);
                 }
             }
-            $imagenRuta = 'img/productos/' . $newFileName;
+            $imagenRuta = 'img/productos/' . $nuevoNombreFichero;
         } else {
             throw new Exception("Error al guardar la imagen.");
         }
     }
 
-    // Actualizar producto
-    $sentencia = "UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, descuento = ?, stock = ?, imagen = ?, categoria_id = ? WHERE id = ?";
+    // ACTUALIZAR EL PRODUCTO
+    $sentencia = "UPDATE productos
+    SET nombre = ?, descripcion = ?, precio = ?, descuento = ?, stock = ?, imagen = ?, categoria_id = ?
+    WHERE id = ?";
     $stmt = $conn->prepare($sentencia);
     $stmt->execute([$nombre, $descripcion, $precio, $descuento, $stock, $imagenRuta, $categoria_id, $product_id]);
 
-    // Actualizar Tallas (Borrar y Recrear)
+    // ACTUALIZAR LAS TALLAS
     $tallas_stock = isset($_POST['tallas_stock']) ? json_decode($_POST['tallas_stock'], true) : [];
 
     if (empty($tallas_stock)) {
         throw new Exception("Debes introducir al menos una talla obligatoriamente.");
     }
 
-    // Primero borramos las existentes para evitar duplicados o inconsistencias
+    // BORRAMOS TALLAS EXISTENTES PARA EVITAR DUPLICADOS Y ERRORES
     $sqlDeleteTallas = "DELETE FROM producto_tallas WHERE producto_id = ?";
     $stmtDelete = $conn->prepare($sqlDeleteTallas);
     $stmtDelete->execute([$product_id]);
 
-    // Insertamos las nuevas
+    // INSERTAMOS LAS NUEVAS
     if (!empty($tallas_stock)) {
         $sqlTalla = "INSERT INTO producto_tallas (producto_id, talla, stock) VALUES (?, ?, ?)";
         $stmtTalla = $conn->prepare($sqlTalla);

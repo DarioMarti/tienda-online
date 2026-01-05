@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . '/../config/seguridad.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -23,15 +26,15 @@
 <body class="antialiased">
     <!-- BARRA SUPERIOR -->
     <div class="sticky top-0 w-full bg-fashion-black text-white text-[10px] py-2 text-center tracking-widest uppercase font-medium z-50 transition-transform duration-300"
-        id="top-bar">
+        id="barra-superior">
         Envíos globales gratuitos en pedidos superiores a 300€
     </div>
 
     <!-- HEADER -->
-    <header id="main-header" class="sticky top-0 w-full z-[60] py-6 px-6 lg:px-12 transition-all duration-300">
+    <header id="cabecera-principal" class="sticky top-0 w-full z-[60] py-6 px-6 lg:px-12 transition-all duration-300">
         <div class="w-full flex justify-between items-center">
 
-            <!-- Menú Izquierda -->
+            <!-- MENÚ DE LA IZQUIERDA -->
             <nav class="hidden lg:flex space-x-8 text-xs uppercase tracking-widest font-medium">
                 <a href="index.php"
                     class="hover:text-fashion-accent transition-colors <?= ($titulo ?? '') === 'Inicio - Aetheria' ? 'text-fashion-accent' : '' ?>">
@@ -51,17 +54,17 @@
                 </a>
             </nav>
 
-            <!-- Mobile Menu Icon -->
+            <!-- ICONOS MENÚ MÓVIL -->
             <div class="lg:hidden text-2xl cursor-pointer">
                 <i class="ph ph-list"></i>
             </div>
 
-            <!-- Logo Central -->
+            <!-- LOGO CENTRAL -->
             <a href="index.php" class="absolute left-1/2 transform -translate-x-1/2">
                 <img src="../img/Logotipo_Aetherea.svg" alt="Logo Aetheria" class="h-8">
             </a>
 
-            <!-- Iconos Derecha -->
+            <!-- ICONOS DE LA DERECHA -->
             <div class="flex items-center space-x-6 text-xl">
                 <?php if (isset($_SESSION['usuario'])): ?>
                     <!-- USUARIO REGISTRADO -->
@@ -71,7 +74,7 @@
                             <i class="ph ph-user-circle text-2xl"></i>
                             <span><?= htmlspecialchars($_SESSION['usuario']['nombre']) ?></span>
                         </span>
-                        <!-- Dropdown menu (opcional) -->
+                        <!--SUBMENÚ DEL USUARIO REGISTRADO -->
                         <div
                             class="hidden group-hover:block absolute right-0  w-48 bg-white shadow-lg rounded-lg py-2 z-50">
                             <a href="perfil-page.php"
@@ -81,7 +84,7 @@
                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">Mis
                                 Pedidos</a>
 
-                            <?php if (in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])): ?>
+                            <?php if (esPersonalAutorizado()): ?>
                                 <a href="admin-page.php"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-fashion-gray transition-colors">
                                     Panel de <?= $_SESSION['usuario']['rol'] === 'admin' ? 'administrador' : 'empleado' ?>
@@ -98,12 +101,12 @@
 
                     <!--USUARIO NO REGISTRADO-->
                     <span class="text-xs uppercase tracking-widest hidden md:block cursor-pointer font-medium mr-2 login"
-                        id="login">Login</span>
+                        id="btn-login">Login</span>
                 <?php endif; ?>
 
                 <i class="ph ph-magnifying-glass cursor-pointer hover:scale-110 transition-transform search"
-                    id="search-trigger"></i>
-                <div class="relative cursor-pointer" id="cart-icon">
+                    id="disparador-busqueda"></i>
+                <div class="relative cursor-pointer" id="icono-carrito">
                     <i class="ph ph-handbag cesta hover:scale-110 transition-transform"></i>
                     <?php
                     $total_carrito = 0;
@@ -113,7 +116,7 @@
                         }
                     }
                     ?>
-                    <span id="cart-count-badge"
+                    <span id="contador-carrito"
                         class="absolute bg-fashion-accent text-white font-bold flex items-center justify-center rounded-full z-20 <?= $total_carrito > 0 ? '' : 'hidden' ?>"
                         style="width: 13px; height: 13px; font-size: 8px; top: -3px; right: -3px; line-height: 1; padding: 0; margin: 0; pointer-events: none;">
                         <?= $total_carrito ?>
@@ -122,31 +125,31 @@
             </div>
         </div>
 
-        <!-- BUSCADOR DESPLEGABLE FULL-WIDTH -->
-        <div id="search-container"
+        <!-- BARRA DE BUSQUEDA FILTRADA -->
+        <div id="contenedor-busqueda"
             class="hidden absolute left-0 top-full w-full bg-white border-b border-gray-100 shadow-sm py-2 px-6 lg:px-12 z-50 transform transition-all duration-300 origin-top">
             <div class="w-full">
-                <input type="text" id="search-input" placeholder="BUSCAR PRODUCTOS O CATEGORÍAS..."
+                <input type="text" id="input-busqueda" placeholder="BUSCAR PRODUCTOS O CATEGORÍAS..."
                     class="w-full bg-transparent border-0 text-lg md:text-2xl editorial-font italic focus:ring-0 focus:outline-none py-4 placeholder:text-[8.5px] placeholder:uppercase placeholder:tracking-[0.2em] placeholder:font-sans placeholder:not-italic">
             </div>
         </div>
     </header>
 
     <!-- OVERLAY -->
-    <div id="side-overlay"
+    <div id="capa-superpuesta"
         class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[45] hidden transition-opacity duration-300"></div>
 
     <!-- CART SIDEBAR -->
-    <div id="cart-sidebar" class="login-sidebar login-sidebar-close z-[50]">
+    <div id="sidebar-carrito" class="sidebar-lateral sidebar-cerrado z-[50]">
         <div class="flex justify-between items-center mb-10">
             <h2 class="editorial-font text-3xl italic">Tu Cesta</h2>
-            <button id="close-cart" class="text-gray-400 hover:text-fashion-black transition-colors">
+            <button id="cerrar-carrito" class="text-gray-400 hover:text-fashion-black transition-colors">
                 <i class="ph ph-x text-2xl"></i>
             </button>
         </div>
 
         <!-- Items Container -->
-        <div id="cart-items-container" class="flex-1 overflow-y-auto space-y-6 mb-8 pr-2 custom-scrollbar">
+        <div id="contenedor-items-carrito" class="flex-1 overflow-y-auto space-y-6 mb-8 pr-2 custom-scrollbar">
             <!-- Los items se cargarán aquí dinámicamente -->
             <p class="text-sm text-gray-500 text-center py-10">Cargando productos...</p>
         </div>
@@ -155,17 +158,17 @@
         <div class="border-t border-gray-100 pt-8 mt-auto">
             <div class="flex justify-between items-center mb-6">
                 <span class="text-xs uppercase tracking-[0.2em] font-bold text-gray-400">Subtotal</span>
-                <span id="cart-subtotal" class="text-lg font-bold">0,00 €</span>
+                <span id="subtotal-carrito" class="text-lg font-bold">0,00 €</span>
             </div>
             <?php
             $cart_empty = !isset($_SESSION['carrito']) || count($_SESSION['carrito']) == 0;
             $checkout_url = isset($_SESSION['usuario']) ? 'checkout-page.php' : 'registro-usuario-page.php';
             ?>
-            <a href="<?= $checkout_url ?>" id="checkout-btn"
+            <a href="<?= $checkout_url ?>" id="btn-finalizar-compra"
                 class="block w-full py-4 text-center text-xs uppercase tracking-[0.25em] font-semibold transition-colors rounded-lg <?= $cart_empty ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none' : 'bg-fashion-black text-white hover:bg-fashion-accent' ?>">
                 Finalizar Compra
             </a>
-            <button id="continue-shopping"
+            <button id="continuar-comprando"
                 class="w-full text-center mt-4 text-[10px] uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
                 Continuar Comprando
             </button>
@@ -173,13 +176,13 @@
     </div>
 
     <!-- LOGIN SIDEBAR -->
-    <div id="login-sidebar" class="login-sidebar login-sidebar-close">
+    <div id="sidebar-login" class="sidebar-lateral sidebar-cerrado">
 
 
         <!-- Cabecera del Sidebar -->
         <div class="flex justify-between items-center mb-10">
             <h2 class="editorial-font text-3xl italic">Iniciar Sesión</h2>
-            <button id="close-login" class="text-gray-400 hover:text-fashion-black transition-colors">
+            <button id="cerrar-login" class="text-gray-400 hover:text-fashion-black transition-colors">
                 <i class="ph ph-x text-2xl"></i>
             </button>
         </div>
@@ -190,17 +193,18 @@
                 <label class="text-xs uppercase tracking-widest font-semibold text-gray-500">Email</label>
                 <input type="email"
                     class="w-full  py-2 text-fashion-black focus:outline-none focus:border-fashion-black transition-colors bg-transparent"
-                    id="formName" name="email" placeholder="tu@email.com">
+                    id="campo-email" name="email" placeholder="tu@email.com">
             </div>
 
             <div class="space-y-2">
                 <label class="text-xs uppercase tracking-widest font-semibold text-gray-500">Contraseña</label>
                 <input type="password"
                     class="w-full py-2 text-fashion-black focus:outline-none focus:border-fashion-black transition-colors bg-transparent "
-                    id="formPassword" name="pass" placeholder="••••••••">
+                    id="campo-pass" name="pass" placeholder="••••••••">
             </div>
 
-            <div class="flex justify-between items-center text-xs text-gray-500 pt-2 checkboxForm" id="checkboxForm">
+            <div class="flex justify-between items-center text-xs text-gray-500 pt-2 formulario-checkbox"
+                id="formulario-checkbox">
                 <label class="flex items-center space-x-2 cursor-pointer">
                     <input type="checkbox" class="rounded border-gray-300 text-fashion-black focus:ring-fashion-black ">
                     <span>Recordarme</span>

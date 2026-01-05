@@ -1,12 +1,9 @@
 <?php
-require('../../config/conexion.php');
-session_start();
+require_once "../../config/conexion.php";
+ob_start();
 
-// Verificar permisos de admin o empleado
-if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
-    header("Location: ../../index.php");
-    exit;
-}
+// Verificar permisos
+restringirAccesoAPI();
 
 try {
     $conn = conectar();
@@ -16,10 +13,11 @@ try {
         throw new Exception("ID de categoría no proporcionado.");
     }
 
-    // Opcional: Verificar si tiene hijos antes de borrar
-    $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM categorias WHERE categoria_padre_id = :id");
-    $stmtCheck->execute([':id' => $id]);
-    if ($stmtCheck->fetchColumn() > 0) {
+    // COMPROBAR SI ES UNA CATEGORÍA PADRE
+
+    $stmtComprobarEsPadre = $conn->prepare("SELECT COUNT(*) FROM categorias WHERE categoria_padre_id = :id");
+    $stmtComprobarEsPadre->execute([':id' => $id]);
+    if ($stmtComprobarEsPadre->fetchColumn() > 0) {
         throw new Exception("No se puede eliminar esta categoría porque tiene subcategorías asociadas.");
     }
 

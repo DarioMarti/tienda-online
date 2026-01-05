@@ -1,13 +1,10 @@
 <?php
-session_start();
+require_once "../modelos/pedidos/mostrar-pedidos.php";
 
-if (!isset($_SESSION['usuario'])) {
-    header("Location: index.php");
-    exit;
-}
+// Verificación de seguridad
+restringirInvitados();
 
 $usuario = $_SESSION['usuario'];
-require_once "../modelos/pedidos/mostrar-pedidos.php";
 $pedidos = mostrarPedidos($usuario['id']);
 
 $totalGastado = 0;

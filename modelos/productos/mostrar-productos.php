@@ -65,9 +65,13 @@ function mostrarProductos($orden = '', $tallas = [], $categoria = '', $precio = 
             break;
     }
 
-    $sql = "SELECT p.* FROM productos p 
+    $sql = "SELECT p.*, GROUP_CONCAT(pt.talla ORDER BY pt.talla) as tallas_disponibles 
+            FROM productos p 
             LEFT JOIN categorias c ON p.categoria_id = c.id 
-            $whereSQL $ordenSQL";
+            LEFT JOIN producto_tallas pt ON p.id = pt.producto_id
+            $whereSQL 
+            GROUP BY p.id
+            $ordenSQL";
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
 

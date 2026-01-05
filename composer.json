@@ -1,0 +1,16 @@
+{
+    "name": "tienda-online/ecommerce",
+    "type": "project",
+    "description": "E-commerce platform with Stripe payment integration",
+    "require": {
+        "stripe/stripe-php": "^19.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "TiendaOnline\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

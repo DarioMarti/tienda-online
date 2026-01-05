@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once "../config/conexion.php";
-require_once "../config/stripe-config.php";
+require_once "../config/stripe_config.php";
 
 // Redirigir si el carrito está vacío
 if (!isset($_SESSION['carrito']) || empty($_SESSION['carrito'])) {

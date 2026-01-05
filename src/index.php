@@ -11,10 +11,12 @@ $orden = $_GET['orden'] ?? '';
 $filtroTallas = isset($_GET['tallas']) ? (is_array($_GET['tallas']) ? $_GET['tallas'] : [$_GET['tallas']]) : [];
 $filtroCategoria = $_GET['categoria'] ?? '';
 $filtroPrecio = $_GET['precio'] ?? 500; // Valor por defecto o del GET
-$filtroBusqueda = $_GET['search'] ?? '';
+
 
 $tallasSeleccionadas = $filtroTallas;
 
+
+$filtroBusqueda = $_GET['busqueda'] ?? '';
 $productos = mostrarProductos($orden, $filtroTallas, $filtroCategoria, $filtroPrecio, true, $filtroBusqueda);
 $categorias = mostrarCategorias();
 
@@ -37,8 +39,14 @@ $categorias = mostrarCategorias();
 <!-- MARQUESINA -->
 <div class="bg-white py-4 border-b border-gray-100 marquee-container w-full">
     <div class="marquee-content editorial-font text-xl md:text-2xl italic text-gray-300">
-        New Arrivals — Sustainable Luxury — Fall Winter Collection — Timeless Elegance — New Arrivals — Sustainable
-        Luxury — Fall Winter Collection — Timeless Elegance —
+        <span>Novedades —</span>
+        <span>Lujo Sostenible —</span>
+        <span>Colección Otoño Invierno —</span>
+        <span>Elegancia Atemporal —</span>
+        <span>Novedades —</span>
+        <span>Lujo Sostenible —</span>
+        <span>Colección Otoño Invierno —</span>
+        <span>Elegancia Atemporal —</span>
     </div>
 </div>
 
@@ -156,7 +164,7 @@ $categorias = mostrarCategorias();
 
                                 echo '<button 
                                     type="button"
-                                    onclick="toggleTalla(\'' . $tallaValor . '\', this)"
+                                    onclick="alternarTalla(\'' . $tallaValor . '\', this)"
                                     class="talla-btn border py-2 text-xs transition-colors ' . $classes . '">
                                     ' . $tallaValor . '
                                 </button>';
@@ -178,8 +186,8 @@ $categorias = mostrarCategorias();
                             <span id="valor-precio-display"
                                 class="text-xs font-bold text-fashion-black"><?= $filtroPrecio ?>€</span>
                         </div>
-                        <input type="range" id="filter-price-slider" min="0" max="500" step="10"
-                            value="<?= $filtroPrecio ?>" oninput="updatePriceDisplay(this.value)"
+                        <input type="range" id="filtro-precio-deslizador" min="0" max="500" step="10"
+                            value="<?= $filtroPrecio ?>" oninput="actualizarDisplayPrecio(this.value)"
                             class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-fashion-black">
                         <div class="flex justify-between text-[10px] mt-2 text-gray-400 uppercase tracking-tighter">
                             <span>0€</span>
@@ -188,7 +196,7 @@ $categorias = mostrarCategorias();
                     </div>
 
                     <script>
-                        function updatePriceDisplay(val) {
+                        function actualizarDisplayPrecio(val) {
                             document.getElementById('valor-precio-display').textContent = val + '€';
                         }
                     </script>
@@ -205,16 +213,13 @@ $categorias = mostrarCategorias();
         <main class="w-full lg:w-4/5 2xl:w-5/6">
 
             <!-- Encabezado del Catálogo -->
-            <div class="flex flex-col md:flex-row justify-between items-center mb-10 pb-4 border-b border-gray-100">
-                <div>
-                    <span class="text-xs uppercase tracking-widest text-gray-400">Otoño / Invierno</span>
-                    <h2 class="editorial-font text-4xl md:text-5xl mt-2">Ready to Wear</h2>
-                </div>
+            <div class="flex flex-col md:flex-row justify-end mb-10 pb-4">
+
                 <div class="flex items-baseline gap-4 mt-4 md:mt-0">
                     <span class="text-sm text-gray-500"><?php echo count($productos); ?> Resultados</span>
                     <form method="GET">
                         <select name="orden" onchange="this.form.submit()"
-                            class="border-none text-sm bg-transparent font-medium focus:ring-0 cursor-pointer">
+                            class="border border-gray-200 text-sm bg-transparent font-medium focus:ring-0 cursor-pointer py-2 px-4 rounded-md">
                             <option value="">Ordenar por</option>
                             <option value="precio_asc">Precio: Bajo a Alto</option>
                             <option value="precio_desc">Precio: Alto a Bajo</option>
@@ -251,10 +256,25 @@ $categorias = mostrarCategorias();
 
                                 <!-- Quick Add (Aparece en hover) -->
                                 <div
-                                    class="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                    <button
-                                        class="w-full bg-white/90 backdrop-blur hover:bg-fashion-black hover:text-white text-fashion-black text-xs uppercase tracking-widest py-3 transition-colors">
-                                        Saber más
+                                    class="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-all duration-500 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-12">
+
+                                    <!-- Selector de Tallas Rápidas -->
+                                    <div class="flex flex-wrap justify-center gap-2 mb-4">
+                                        <?php
+                                        $tallasProducto = !empty($producto['tallas_disponibles']) ? explode(',', $producto['tallas_disponibles']) : [];
+                                        foreach ($tallasProducto as $t) { ?>
+                                            <button type="button"
+                                                onclick="event.preventDefault(); seleccionarTallaRapida(<?= $producto['id'] ?>, '<?= $t ?>', this)"
+                                                class="quick-size-btn w-8 h-8 rounded-full border border-white/30 text-[10px] text-white hover:border-white transition-all flex items-center justify-center backdrop-blur-sm">
+                                                <?= $t ?>
+                                            </button>
+                                        <?php } ?>
+                                    </div>
+
+                                    <button onclick="event.preventDefault(); añadirAlCarritoRapido(<?= $producto['id'] ?>)"
+                                        id="quick-add-btn-<?= $producto['id'] ?>" data-selected-size=""
+                                        class="w-full bg-white text-fashion-black hover:bg-fashion-accent hover:text-white text-[10px] font-bold uppercase tracking-widest py-3 transition-colors rounded-sm shadow-xl">
+                                        Añadir a la cesta
                                     </button>
                                 </div>
                             </div>

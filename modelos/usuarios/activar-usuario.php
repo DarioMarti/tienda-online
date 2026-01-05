@@ -1,11 +1,9 @@
 <?php
 require_once "../../config/conexion.php";
-session_start();
+ob_start();
 
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
-    header("Location: ../../index.php");
-    exit;
-}
+// COMPROBAR SI SE TIENE ACCESO
+restringirSoloAdminAPI();
 
 try {
     $conn = conectar();

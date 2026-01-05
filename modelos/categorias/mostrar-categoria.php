@@ -2,7 +2,6 @@
 
 function mostrarCategorias($soloActivos = true)
 {
-
     require_once dirname(__DIR__, 2) . "/config/conexion.php";
 
     try {

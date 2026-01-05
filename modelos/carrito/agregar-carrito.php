@@ -16,33 +16,34 @@ if ($producto_id <= 0 || empty($talla)) {
     exit();
 }
 
-// Inicializar el carrito si no existe
+// INICILIZAR EL CARRITO SI NO EXISTE
 if (!isset($_SESSION['carrito'])) {
     $_SESSION['carrito'] = [];
 }
 
-// Identificador único para el par producto-talla
-$cart_key = $producto_id . '_' . $talla;
+// IDENTIFICADOR ÚNICO PARA EL PAR PRODUCTO-TALLA
+$carritoProducto = $producto_id . '_' . $talla;
 
-if (isset($_SESSION['carrito'][$cart_key])) {
-    $_SESSION['carrito'][$cart_key]['cantidad'] += $cantidad;
+if (isset($_SESSION['carrito'][$carritoProducto])) {
+    $_SESSION['carrito'][$carritoProducto]['cantidad'] += $cantidad;
 } else {
-    $_SESSION['carrito'][$cart_key] = [
+    $_SESSION['carrito'][$carritoProducto] = [
         'producto_id' => $producto_id,
         'talla' => $talla,
         'cantidad' => $cantidad
     ];
 }
 
-// Calcular total de items en el carrito para la respuesta
-$total_items = 0;
+// CALCULAR TOTAL DE ITEMS EN EL CARRITO PARA LA RESPUESTA
+
+$totalItems = 0;
 foreach ($_SESSION['carrito'] as $item) {
-    $total_items += $item['cantidad'];
+    $totalItems += $item['cantidad'];
 }
 
 echo json_encode([
     'success' => true,
     'message' => 'Producto añadido a la cesta.',
-    'total_items' => $total_items
+    'total_items' => $totalItems
 ]);
 ?>

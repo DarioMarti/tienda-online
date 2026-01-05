@@ -1,13 +1,9 @@
 <?php
-header('Content-Type: application/json');
-require('../../config/conexion.php');
-session_start();
+require_once '../../config/conexion.php';
+ob_start();
 
-// Verificar permisos de admin o empleado
-if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
-    echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
-    exit;
-}
+// Verificar permisos
+restringirAccesoAPI();
 
 try {
     $conn = conectar();
@@ -21,35 +17,36 @@ try {
         throw new Exception("ID de categoría no proporcionado.");
     }
 
-    // Validar duplicados (excluyendo la propia categoría)
-    $sqlCheck = "SELECT id FROM categorias WHERE nombre = :nombre AND id != :id";
-    $stmtCheck = $conn->prepare($sqlCheck);
-    $stmtCheck->execute([
+    // COMPROBAR DUPLICADOS
+    $sqlComprobar = "SELECT id FROM categorias WHERE nombre = :nombre AND id != :id";
+    $stmtComprobar = $conn->prepare($sqlComprobar);
+    $stmtComprobar->execute([
         ':nombre' => $nombre,
         ':id' => $id
     ]);
 
-    if ($stmtCheck->fetch()) {
+    if ($stmtComprobar->fetch()) {
         throw new Exception("Ya existe una categoría con el nombre '$nombre'.");
     }
 
-    // Validar conflicto con nombre de padre
+    // COMPROBAR SI LA CATEGORIA ES SU PROPIO PADRE
     if ($categoria_padre_id) {
-        // Evitar ser padre de uno mismo (ciclado simple)
         if ($categoria_padre_id == $id) {
             throw new Exception("Una categoría no puede ser su propio padre.");
         }
 
-        $stmtParent = $conn->prepare("SELECT nombre FROM categorias WHERE id = :id");
-        $stmtParent->execute([':id' => $categoria_padre_id]);
-        $parent = $stmtParent->fetch(PDO::FETCH_ASSOC);
+        $stmtPadre = $conn->prepare("SELECT nombre FROM categorias WHERE id = :id");
+        $stmtPadre->execute([':id' => $categoria_padre_id]);
+        $padre = $stmtPadre->fetch(PDO::FETCH_ASSOC);
 
-        if ($parent && strcasecmp($parent['nombre'], $nombre) === 0) {
+        if ($padre && strcasecmp($padre['nombre'], $nombre) === 0) {
             throw new Exception("El nombre de la categoría no puede ser igual al de su categoría padre.");
         }
     }
 
-    $sentencia = 'UPDATE categorias SET nombre = :nombre, descripcion = :descripcion, categoria_padre_id = :categoria_padre_id WHERE id = :id';
+    $sentencia = 'UPDATE categorias
+    SET nombre = :nombre, descripcion = :descripcion, categoria_padre_id = :categoria_padre_id
+    WHERE id = :id';
     $stmt = $conn->prepare($sentencia);
     $stmt->execute([
         ':nombre' => $nombre,

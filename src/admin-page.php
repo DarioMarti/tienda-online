@@ -1,17 +1,13 @@
 <?php
 require_once '../config/conexion.php';
-session_start();
 require("../modelos/usuarios/mostrar-usuarios.php");
 require("../modelos/categorias/mostrar-categoria.php");
 require("../modelos/productos/mostrar-productos.php");
 require("../modelos/pedidos/mostrar-pedidos.php");
 require("../modelos/informes/obtener-informes.php");
 
-// Verificación de seguridad: Solo administradores y empleados
-if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
-    header("Location: index.php");
-    exit;
-}
+// Verificación de seguridad
+restringirAccesoPagina();
 
 // Obtener usuarios para la gestión (todos, incluidos inactivos)
 $usuarios = mostrarUsuarios(false);
@@ -36,8 +32,8 @@ include 'Cabecera.php';
 
 <script>
     // Pasar ID del administrador actual a JS para protecciones de edición
-    const currentUserId = <?= $_SESSION['usuario']['id'] ?>;
-    const allProducts = <?php echo json_encode($productos); ?>;
+    const idUsuarioActual = <?= $_SESSION['usuario']['id'] ?>;
+    const todosLosProductos = <?php echo json_encode($productos); ?>;
 </script>
 
 <div class="min-h-screen bg-fashion-gray flex">
@@ -49,33 +45,33 @@ include 'Cabecera.php';
                 Panel <?= $_SESSION['usuario']['rol'] === 'admin' ? 'Admin' : 'Empleado' ?>
             </h2>
             <nav class="space-y-2">
-                <button onclick="switchTab('dashboard')"
+                <button onclick="cambiarPestaña('dashboard')"
                     class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm uppercase tracking-widest font-semibold text-fashion-black bg-fashion-gray transition-colors"
                     data-tab="dashboard">
                     <i class="ph ph-squares-four mr-2"></i>Dashboard
                 </button>
-                <button onclick="switchTab('pedidos')"
+                <button onclick="cambiarPestaña('pedidos')"
                     class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm uppercase tracking-widest font-semibold text-gray-500 hover:bg-fashion-gray hover:text-fashion-black transition-colors"
                     data-tab="pedidos">
                     <i class="ph ph-package mr-2"></i>Pedidos
                 </button>
-                <button onclick="switchTab('productos')"
+                <button onclick="cambiarPestaña('productos')"
                     class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm uppercase tracking-widest font-semibold text-gray-500 hover:bg-fashion-gray hover:text-fashion-black transition-colors"
                     data-tab="productos">
                     <i class="ph ph-t-shirt mr-2"></i>Productos
                 </button>
-                <button onclick="switchTab('categorias')"
+                <button onclick="cambiarPestaña('categorias')"
                     class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm uppercase tracking-widest font-semibold text-gray-500 hover:bg-fashion-gray hover:text-fashion-black transition-colors"
                     data-tab="categorias">
                     <i class="ph ph-tag mr-2"></i>Categorías
                 </button>
                 <?php if ($_SESSION['usuario']['rol'] === 'admin'): ?>
-                    <button onclick="switchTab('usuarios')"
+                    <button onclick="cambiarPestaña('usuarios')"
                         class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm uppercase tracking-widest font-semibold text-gray-500 hover:bg-fashion-gray hover:text-fashion-black transition-colors"
                         data-tab="usuarios">
                         <i class="ph ph-users mr-2"></i>Usuarios
                     </button>
-                    <button onclick="switchTab('informes')"
+                    <button onclick="cambiarPestaña('informes')"
                         class="nav-item w-full text-left px-4 py-3 rounded-lg text-sm uppercase tracking-widest font-semibold text-gray-500 hover:bg-fashion-gray hover:text-fashion-black transition-colors"
                         data-tab="informes">
                         <i class="ph ph-chart-line-up mr-2"></i>Informes
@@ -89,7 +85,7 @@ include 'Cabecera.php';
     <main class="flex-1 p-8 pt-24">
 
         <!-- Sección Dashboard (Resumen) -->
-        <section id="dashboard-section" class="tab-content block">
+        <section id="seccion-dashboard" class="tab-content block">
             <h1 class="font-editorial text-4xl italic text-fashion-black mb-8">Resumen General</h1>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <!-- Cards de Resumen -->
@@ -140,10 +136,10 @@ include 'Cabecera.php';
             </div>
         </section>
 
-        <section id="pedidos-section" class="tab-content hidden">
+        <section id="seccion-pedidos" class="tab-content hidden">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="font-editorial text-4xl italic text-fashion-black">Gestión de Pedidos</h1>
-                <button onclick="openOrderModal()"
+                <button onclick="abrirModalPedido()"
                     class="bg-fashion-black text-white px-6 py-3 rounded-lg text-xs uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-colors shadow-lg">
                     <i class="ph ph-plus mr-2"></i>Nuevo Pedido
                 </button>
@@ -215,22 +211,22 @@ include 'Cabecera.php';
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 text-right space-x-2">
-                                            <button onclick="viewOrderDetails(<?= $pedido['id'] ?>)"
+                                            <button onclick="verDetallesPedido(<?= $pedido['id'] ?>)"
                                                 class="text-gray-400 hover:text-fashion-accent transition-colors"
                                                 title="Ver Detalles">
                                                 <i class="ph ph-eye text-xl"></i>
                                             </button>
-                                            <button onclick='editOrder(<?= json_encode($pedido) ?>)'
+                                            <button onclick='editarPedido(<?= json_encode($pedido) ?>)'
                                                 class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
                                                 <i class="ph ph-pencil-simple text-xl"></i>
                                             </button>
                                             <?php if ($pedido['activo'] == 1): ?>
-                                                <button onclick="deleteOrder(<?= $pedido['id'] ?>)"
+                                                <button onclick="eliminarPedido(<?= $pedido['id'] ?>)"
                                                     class="text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
                                                     <i class="ph ph-trash text-xl"></i>
                                                 </button>
                                             <?php else: ?>
-                                                <button onclick="activateOrder(<?= $pedido['id'] ?>)"
+                                                <button onclick="activarPedido(<?= $pedido['id'] ?>)"
                                                     class="text-gray-400 hover:text-green-500 transition-colors" title="Reactivar">
                                                     <i class="ph ph-arrow-u-up-left text-xl"></i>
                                                 </button>
@@ -246,10 +242,10 @@ include 'Cabecera.php';
         </section>
 
 
-        <section id="productos-section" class="tab-content hidden">
+        <section id="seccion-productos" class="tab-content hidden">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="font-editorial text-4xl italic text-fashion-black">Gestión de Productos</h1>
-                <button onclick="openProductModal()"
+                <button onclick="abrirModalProducto()"
                     class="bg-fashion-black text-white px-6 py-3 rounded-lg text-xs uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-colors shadow-lg">
                     <i class="ph ph-plus mr-2"></i>Nuevo Producto
                 </button>
@@ -358,19 +354,19 @@ include 'Cabecera.php';
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 text-right space-x-2">
-                                            <button onclick='editProduct(<?= json_encode($producto) ?>)'
+                                            <button onclick='editarProducto(<?= json_encode($producto) ?>)'
                                                 class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
                                                 <i class="ph ph-pencil-simple text-xl"></i>
                                             </button>
                                             <?php if ($producto['activo']): ?>
                                                 <button
-                                                    onclick="deleteProduct(<?= $producto['id'] ?>, '<?= htmlspecialchars($producto['nombre']) ?>')"
+                                                    onclick="eliminarProducto(<?= $producto['id'] ?>, '<?= htmlspecialchars($producto['nombre']) ?>')"
                                                     class="text-gray-400 hover:text-red-500 transition-colors" title="Desactivar">
                                                     <i class="ph ph-trash text-xl"></i>
                                                 </button>
                                             <?php else: ?>
                                                 <button
-                                                    onclick="activateProduct(<?= $producto['id'] ?>, '<?= htmlspecialchars($producto['nombre']) ?>')"
+                                                    onclick="activarProducto(<?= $producto['id'] ?>, '<?= htmlspecialchars($producto['nombre']) ?>')"
                                                     class="text-gray-400 hover:text-green-500 transition-colors" title="Activar">
                                                     <i class="ph ph-arrow-u-up-left text-xl"></i>
                                                 </button>
@@ -385,10 +381,10 @@ include 'Cabecera.php';
             </div>
         </section>
 
-        <section id="categorias-section" class="tab-content hidden">
+        <section id="seccion-categorias" class="tab-content hidden">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="font-editorial text-4xl italic text-fashion-black">Gestión de Categorías</h1>
-                <button onclick="openCategoryModal()"
+                <button onclick="abrirModalCategoria()"
                     class="bg-fashion-black text-white px-6 py-3 rounded-lg text-xs uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-colors shadow-lg">
                     <i class="ph ph-plus mr-2"></i>Nueva Categoría
                 </button>
@@ -449,19 +445,19 @@ include 'Cabecera.php';
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-right space-x-2">
-                                        <button onclick='editCategory(<?= json_encode($categoria) ?>)'
+                                        <button onclick='editarCategoria(<?= json_encode($categoria) ?>)'
                                             class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
                                             <i class="ph ph-pencil-simple text-xl"></i>
                                         </button>
                                         <?php if ($categoria['activo']): ?>
                                             <button
-                                                onclick="deleteCategory(<?= $categoria['id'] ?>, '<?= htmlspecialchars($categoria['nombre']) ?>')"
+                                                onclick="eliminarCategoria(<?= $categoria['id'] ?>, '<?= htmlspecialchars($categoria['nombre']) ?>')"
                                                 class="text-gray-400 hover:text-red-500 transition-colors" title="Desactivar">
                                                 <i class="ph ph-trash text-xl"></i>
                                             </button>
                                         <?php else: ?>
                                             <button
-                                                onclick="activateCategory(<?= $categoria['id'] ?>, '<?= htmlspecialchars($categoria['nombre']) ?>')"
+                                                onclick="activarCategoria(<?= $categoria['id'] ?>, '<?= htmlspecialchars($categoria['nombre']) ?>')"
                                                 class="text-gray-400 hover:text-green-500 transition-colors" title="Activar">
                                                 <i class="ph ph-arrow-u-up-left text-xl"></i>
                                             </button>
@@ -476,10 +472,10 @@ include 'Cabecera.php';
         </section>
 
         <?php if ($_SESSION['usuario']['rol'] === 'admin'): ?>
-            <section id="usuarios-section" class="tab-content hidden">
+            <section id="seccion-usuarios" class="tab-content hidden">
                 <div class="flex justify-between items-center mb-8">
                     <h1 class="font-editorial text-4xl italic text-fashion-black">Gestión de Usuarios</h1>
-                    <button onclick="openUserModal()"
+                    <button onclick="abrirModalUsuario()"
                         class="bg-fashion-black text-white px-6 py-3 rounded-lg text-xs uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-colors shadow-lg">
                         <i class="ph ph-plus mr-2"></i>Nuevo Usuario
                     </button>
@@ -529,19 +525,19 @@ include 'Cabecera.php';
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 text-right space-x-2">
-                                            <button onclick='editUser(<?= json_encode($usuario) ?>)'
+                                            <button onclick='editarUsuario(<?= json_encode($usuario) ?>)'
                                                 class="text-gray-400 hover:text-fashion-black transition-colors" title="Editar">
                                                 <i class="ph ph-pencil-simple text-xl"></i>
                                             </button>
                                             <?php if ($usuario['activo']): ?>
                                                 <button
-                                                    onclick="deleteUser(<?= $usuario['id'] ?>, '<?= htmlspecialchars($usuario['nombre']) ?>')"
+                                                    onclick="eliminarUsuario(<?= $usuario['id'] ?>, '<?= htmlspecialchars($usuario['nombre']) ?>')"
                                                     class="text-gray-400 hover:text-red-500 transition-colors" title="Desactivar">
                                                     <i class="ph ph-trash text-xl"></i>
                                                 </button>
                                             <?php else: ?>
                                                 <button
-                                                    onclick="activateUser(<?= $usuario['id'] ?>, '<?= htmlspecialchars($usuario['nombre']) ?>')"
+                                                    onclick="activarUsuario(<?= $usuario['id'] ?>, '<?= htmlspecialchars($usuario['nombre']) ?>')"
                                                     class="text-gray-400 hover:text-green-500 transition-colors" title="Activar">
                                                     <i class="ph ph-arrow-u-up-left text-xl"></i>
                                                 </button>
@@ -554,7 +550,7 @@ include 'Cabecera.php';
                     </div>
                 </div>
             </section>
-            <section id="informes-section" class="tab-content hidden">
+            <section id="seccion-informes" class="tab-content hidden">
                 <h1 class="font-editorial text-4xl italic text-fashion-black mb-8">Informes</h1>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- Gráfico de ventas (Placeholder) -->
@@ -583,18 +579,18 @@ include 'Cabecera.php';
 </div>
 
 <!-- Modal Usuario (Crear/Editar) -->
-<div id="user-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+<div id="modal-usuario" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center">
-            <h2 id="modal-title" class="font-editorial text-3xl italic text-fashion-black">Nuevo Usuario</h2>
-            <button onclick="closeUserModal()" class="text-gray-400 hover:text-fashion-black transition-colors">
+            <h2 id="titulo-modal" class="font-editorial text-3xl italic text-fashion-black">Nuevo Usuario</h2>
+            <button onclick="cerrarModalUsuario()" class="text-gray-400 hover:text-fashion-black transition-colors">
                 <i class="ph ph-x text-2xl"></i>
             </button>
         </div>
 
-        <form id="user-form" action="../modelos/usuarios/admin-save-user.php" method="POST" class="p-8">
-            <input type="hidden" name="user_id" id="user_id">
-            <input type="hidden" name="action" id="form_action" value="create">
+        <form id="formulario-usuario" action="../modelos/usuarios/admin-agregar-usuario.php" method="POST" class="p-8">
+            <input type="hidden" name="user_id" id="id-usuario">
+            <input type="hidden" name="action" id="accion-formulario" value="create">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
@@ -612,11 +608,11 @@ include 'Cabecera.php';
                     <input type="email" name="email" id="email" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
                 </div>
-                <div class="space-y-2 md:col-span-2" id="password-group">
+                <div class="space-y-2 md:col-span-2" id="grupo-password">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Contraseña</label>
                     <input type="password" name="password" id="password"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
-                    <p class="text-xs text-gray-500 italic mt-1" id="password-hint">Dejar en blanco para mantener la
+                    <p class="text-xs text-gray-500 italic mt-1" id="pista-password">Dejar en blanco para mantener la
                         actual al editar.</p>
                 </div>
                 <div class="space-y-2">
@@ -639,7 +635,7 @@ include 'Cabecera.php';
             </div>
 
             <div class="flex gap-4 mt-8">
-                <button type="button" onclick="closeUserModal()"
+                <button type="button" onclick="cerrarModalUsuario()"
                     class="flex-1 bg-gray-200 text-gray-700 py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-gray-300 transition-all rounded-lg">
                     Cancelar
                 </button>
@@ -653,36 +649,37 @@ include 'Cabecera.php';
 </div>
 
 <!-- Modal Categoría (Crear/Editar) -->
-<div id="category-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+<div id="modal-categoria" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center">
-            <h2 id="category-modal-title" class="font-editorial text-3xl italic text-fashion-black">Nueva Categoría</h2>
-            <button onclick="closeCategoryModal()" class="text-gray-400 hover:text-fashion-black transition-colors">
+            <h2 id="titulo-modal-categoria" class="font-editorial text-3xl italic text-fashion-black">Nueva Categoría
+            </h2>
+            <button onclick="cerrarModalCategoria()" class="text-gray-400 hover:text-fashion-black transition-colors">
                 <i class="ph ph-x text-2xl"></i>
             </button>
         </div>
 
-        <form id="category-form" action="../modelos/categorias/crear-categoria.php" method="POST" class="p-8">
-            <input type="hidden" name="category_id" id="category_id">
-            <input type="hidden" name="action" id="category_form_action" value="create">
+        <form id="formulario-categoria" action="../modelos/categorias/crear-categoria.php" method="POST" class="p-8">
+            <input type="hidden" name="category_id" id="id-categoria">
+            <input type="hidden" name="action" id="accion-formulario-categoria" value="create">
 
             <div class="space-y-6">
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Nombre</label>
-                    <input type="text" name="nombre" id="cat_nombre" required
+                    <input type="text" name="nombre" id="nombre-categoria" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
                 </div>
 
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Descripción</label>
-                    <textarea name="descripcion" id="cat_descripcion" rows="3"
+                    <textarea name="descripcion" id="descripcion-categoria" rows="3"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black"></textarea>
                 </div>
 
 
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Categoría Padre</label>
-                    <select name="categoria_padre_id" id="cat_parent_id"
+                    <select name="categoria_padre_id" id="id-padre-categoria"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black bg-white">
                         <option value="">Ninguna (Categoría Principal)</option>
                         <?php foreach ($categorias as $categoria): ?>
@@ -694,7 +691,7 @@ include 'Cabecera.php';
             </div>
 
             <div class="flex gap-4 mt-8">
-                <button type="button" onclick="closeCategoryModal()"
+                <button type="button" onclick="cerrarModalCategoria()"
                     class="flex-1 bg-gray-200 text-gray-700 py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-gray-300 transition-all rounded-lg">
                     Cancelar
                 </button>
@@ -708,29 +705,29 @@ include 'Cabecera.php';
 </div>
 
 <!-- Modal Pedido (Crear/Editar) -->
-<div id="order-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+<div id="modal-pedido" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center">
-            <h2 id="order-modal-title" class="font-editorial text-3xl italic text-fashion-black">Nuevo Pedido</h2>
-            <button onclick="closeOrderModal()" class="text-gray-400 hover:text-fashion-black transition-colors">
+            <h2 id="titulo-modal-pedido" class="font-editorial text-3xl italic text-fashion-black">Nuevo Pedido</h2>
+            <button onclick="cerrarModalPedido()" class="text-gray-400 hover:text-fashion-black transition-colors">
                 <i class="ph ph-x text-2xl"></i>
             </button>
         </div>
 
-        <form id="order-form" action="../modelos/pedidos/crear-pedido.php" method="POST" class="p-8">
-            <input type="hidden" name="pedido_id" id="order_id">
+        <form id="formulario-pedido" action="../modelos/pedidos/crear-pedido.php" method="POST" class="p-8">
+            <input type="hidden" name="pedido_id" id="id-pedido">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Email Usuario</label>
-                    <input type="email" name="usuario_email" id="order_usuario_email" required
+                    <input type="email" name="usuario_email" id="email-usuario-pedido" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black"
                         placeholder="Email del cliente">
                 </div>
 
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Coste Total (€)</label>
-                    <input type="number" step="0.01" name="coste_total" id="order_coste_total" required readonly
+                    <input type="number" step="0.01" name="coste_total" id="coste-total-pedido" required readonly
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:border-fashion-black font-bold">
                 </div>
 
@@ -738,7 +735,7 @@ include 'Cabecera.php';
                 <div class="md:col-span-2 mt-4">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="text-xs uppercase tracking-widest font-bold text-gray-500">Artículos del Pedido</h4>
-                        <button type="button" onclick="addProductRow()"
+                        <button type="button" onclick="añadirFilaProducto()"
                             class="text-xs bg-fashion-black text-white px-4 py-2 rounded hover:bg-fashion-accent transition-colors flex items-center gap-2">
                             <i class="ph ph-plus"></i> Añadir Producto
                         </button>
@@ -764,7 +761,7 @@ include 'Cabecera.php';
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody id="order-items-builder" class="divide-y divide-gray-100">
+                            <tbody id="constructor-items-pedido" class="divide-y divide-gray-100">
                                 <!-- Filas de productos dinámicas -->
                             </tbody>
                         </table>
@@ -774,27 +771,27 @@ include 'Cabecera.php';
                 <div class="space-y-2 md:col-span-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Nombre
                         Destinatario</label>
-                    <input type="text" name="nombre_destinatario" id="order_nombre_destinatario" required
+                    <input type="text" name="nombre_destinatario" id="nombre-destinatario-pedido" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
                 </div>
                 <div class="space-y-2 md:col-span-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Dirección Envío</label>
-                    <textarea name="direccion_envio" id="order_direccion_envio" required rows="2"
+                    <textarea name="direccion_envio" id="direccion-envio-pedido" required rows="2"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black"></textarea>
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Ciudad</label>
-                    <input type="text" name="ciudad" id="order_ciudad" required
+                    <input type="text" name="ciudad" id="ciudad-pedido" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Provincia</label>
-                    <input type="text" name="provincia" id="order_provincia" required
+                    <input type="text" name="provincia" id="provincia-pedido" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black">
                 </div>
                 <div class="space-y-2 md:col-span-2">
                     <label class="text-xs uppercase tracking-widest font-semibold text-gray-700">Estado</label>
-                    <select name="estado" id="order_estado" required
+                    <select name="estado" id="estado-pedido" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-fashion-black bg-white">
                         <option value="pendiente">Pendiente</option>
                         <option value="pagado">Pagado</option>
@@ -806,12 +803,12 @@ include 'Cabecera.php';
             </div>
 
             <!-- Aviso Global de Stock -->
-            <div id="order-stock-warning" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div id="aviso-stock-pedido" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <div class="flex gap-3">
                     <i class="ph ph-warning-circle text-red-500 text-xl"></i>
                     <div>
                         <p class="text-sm font-bold text-red-700">Stock Insuficiente</p>
-                        <ul class="text-xs text-red-600 list-disc ml-4 mt-1" id="stock-warning-list">
+                        <ul class="text-xs text-red-600 list-disc ml-4 mt-1" id="lista-avisos-stock">
                             <!-- Errores dinámicos -->
                         </ul>
                     </div>
@@ -820,7 +817,7 @@ include 'Cabecera.php';
 
             <div class="flex gap-4 mt-8">
 
-                <button type="button" onclick="closeOrderModal()"
+                <button type="button" onclick="cerrarModalPedido()"
                     class="flex-1 bg-gray-200 text-gray-700 py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-gray-300 transition-all rounded-lg">
                     Cancelar
                 </button>
@@ -835,16 +832,17 @@ include 'Cabecera.php';
 
 
 <!-- Modal Detalles de Pedido -->
-<div id="order-details-modal"
+<div id="modal-detalles-pedido"
     class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center z-10">
             <div>
                 <h2 class="font-editorial text-3xl italic text-fashion-black">Detalles del Pedido <span
-                        id="view_order_id"></span></h2>
-                <p class="text-gray-500 text-sm mt-1" id="view_order_date"></p>
+                        id="det-id-pedido"></span></h2>
+                <p class="text-gray-500 text-sm mt-1" id="det-fecha-pedido"></p>
             </div>
-            <button onclick="closeOrderDetailsModal()" class="text-gray-400 hover:text-fashion-black transition-colors">
+            <button onclick="cerrarModalDetallesPedido()"
+                class="text-gray-400 hover:text-fashion-black transition-colors">
                 <i class="ph ph-x text-2xl"></i>
             </button>
         </div>
@@ -857,20 +855,20 @@ include 'Cabecera.php';
                     </h3>
                     <div class="space-y-2 text-sm">
                         <p><span class="font-semibold text-gray-700">Nombre:</span> <span
-                                id="view_customer_name"></span></p>
-                        <p><span class="font-semibold text-gray-700">Email:</span> <span
-                                id="view_customer_email"></span></p>
+                                id="det-nombre-cliente"></span></p>
+                        <p><span class="font-semibold text-gray-700">Email:</span> <span id="det-email-cliente"></span>
+                        </p>
                         <div class="flex items-center gap-2">
                             <span class="font-semibold text-gray-700">Estado:</span>
-                            <span id="view_order_status_badge"></span>
+                            <span id="det-badge-estado"></span>
                         </div>
                     </div>
                 </div>
                 <div class="bg-gray-50 p-6 rounded-lg border border-gray-100">
                     <h3 class="text-xs uppercase tracking-widest font-bold text-gray-500 mb-4">Dirección de Envío</h3>
                     <div class="space-y-2 text-sm">
-                        <p id="view_shipping_address" class="text-gray-700"></p>
-                        <p id="view_shipping_location" class="text-gray-700"></p>
+                        <p id="det-direccion-envio" class="text-gray-700"></p>
+                        <p id="det-ubicacion-envio" class="text-gray-700"></p>
                     </div>
                 </div>
             </div>
@@ -895,14 +893,14 @@ include 'Cabecera.php';
                                     Total</th>
                             </tr>
                         </thead>
-                        <tbody id="order_items_list" class="divide-y divide-gray-100">
+                        <tbody id="det-lista-items" class="divide-y divide-gray-100">
                             <!-- Los items se cargarán dinámicamente -->
                         </tbody>
                         <tfoot>
                             <tr class="bg-gray-50 font-bold border-t-2 border-fashion-black">
                                 <td colspan="3" class="px-6 py-4 text-right uppercase tracking-widest text-xs">Total del
                                     Pedido</td>
-                                <td class="px-6 py-4 text-right text-xl text-fashion-black" id="view_order_total">0.00 €
+                                <td class="px-6 py-4 text-right text-xl text-fashion-black" id="det-total-pedido">0.00 €
                                 </td>
                             </tr>
                         </tfoot>
@@ -911,7 +909,7 @@ include 'Cabecera.php';
             </div>
 
             <div class="flex justify-end mt-8">
-                <button onclick="closeOrderDetailsModal()"
+                <button onclick="cerrarModalDetallesPedido()"
                     class="bg-fashion-black text-white py-3 px-8 text-xs uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-all rounded-lg shadow-lg">
                     Cerrar
                 </button>
@@ -922,16 +920,16 @@ include 'Cabecera.php';
 
 <!-- Modal Notificación -->
 
-<div id="notification-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+<div id="modal-notificacion" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
     style="z-index: 9999;">
     <div class="bg-white rounded-lg shadow-2xl w-[300px] p-6 text-center transform transition-all scale-100 relative">
-        <div id="notification-icon" class="mb-4 text-4xl flex justify-center">
+        <div id="icono-notificacion" class="mb-4 text-4xl flex justify-center">
             <!-- Icono dinámico -->
         </div>
-        <h3 id="notification-title" class="text-lg font-editorial italic text-fashion-black mb-2"></h3>
-        <p id="notification-message" class="text-gray-600 text-xs mb-6"></p>
+        <h3 id="titulo-notificacion" class="text-lg font-editorial italic text-fashion-black mb-2"></h3>
+        <p id="mensaje-notificacion" class="text-gray-600 text-xs mb-6"></p>
 
-        <button onclick="closeNotificationModal()"
+        <button onclick="cerrarModalNotificacion()"
             class="w-full bg-fashion-black text-white py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-fashion-accent transition-colors rounded">
             Entendido
         </button>
@@ -939,21 +937,21 @@ include 'Cabecera.php';
 </div>
 
 <!-- Modal Confirmación Eliminar -->
-<div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+<div id="modal-eliminacion" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
     style="z-index: 9999;">
     <div class="bg-white rounded-lg shadow-2xl w-[300px] p-6 text-center transform transition-all scale-100 relative">
         <div class="mb-4 text-4xl flex justify-center">
             <i class="ph ph-warning-circle text-red-500"></i>
         </div>
         <h3 class="text-lg font-editorial italic text-fashion-black mb-2">¿Estás seguro?</h3>
-        <p id="delete-message" class="text-gray-600 text-xs mb-6"></p>
+        <p id="mensaje-eliminacion" class="text-gray-600 text-xs mb-6"></p>
 
         <div class="flex gap-2 justify-center">
-            <button onclick="closeDeleteModal()"
+            <button onclick="cerrarModalEliminar()"
                 class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-gray-300 transition-colors rounded">
                 Cancelar
             </button>
-            <button id="delete-confirm-btn" onclick="confirmDelete()"
+            <button id="boton-confirmar-eliminacion" onclick="confirmarEliminacion()"
                 class="flex-1 bg-red-600 text-white py-2 px-4 text-[10px] uppercase tracking-widest font-semibold hover:bg-red-700 transition-colors rounded">
                 Eliminar
             </button>
@@ -977,27 +975,27 @@ include 'Cabecera.php';
 </style>
 
 <!-- Modal Producto (Crear/Editar) -->
-<div id="product-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+<div id="modal-producto" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div style="max-width: 1200px;"
         class="bg-white rounded-xl shadow-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
         <!-- Header -->
         <div class="sticky top-0 bg-white border-b border-gray-100 px-8 py-6 flex justify-between items-center z-10">
             <div>
-                <h2 id="product-modal-title" class="font-editorial text-3xl italic text-fashion-black">Nuevo Producto
+                <h2 id="titulo-modal-producto" class="font-editorial text-3xl italic text-fashion-black">Nuevo Producto
                 </h2>
                 <p class="text-gray-500 text-sm mt-1">Completa los detalles del producto</p>
             </div>
-            <button onclick="closeProductModal()"
+            <button onclick="cerrarModalProducto()"
                 class="text-gray-400 hover:text-fashion-black transition-colors p-2 hover:bg-gray-100 rounded-full">
                 <i class="ph ph-x text-2xl"></i>
             </button>
         </div>
 
         <!-- Form -->
-        <form id="product-form" action="../modelos/productos/agregar-producto.php" method="POST"
+        <form id="formulario-producto" action="../modelos/productos/agregar-producto.php" method="POST"
             enctype="multipart/form-data" class="p-8">
-            <input type="hidden" id="product_id" name="product_id">
-            <input type="hidden" id="product_form_action" name="action" value="create">
+            <input type="hidden" id="id-producto" name="product_id">
+            <input type="hidden" id="accion-formulario-producto" name="action" value="create">
 
             <!-- Grid: Imagen | Datos -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-8">
@@ -1009,16 +1007,16 @@ include 'Cabecera.php';
                     </label>
 
                     <!-- Contenedor Cuadrado -->
-                    <div id="drop-zone" class="relative w-full cursor-pointer group" style="padding-bottom: 100%;">
-                        <input type="file" id="prod_imagen" name="imagen" accept="image/*" class="hidden"
-                            onchange="previewImage(this)">
+                    <div id="zona-drop" class="relative w-full cursor-pointer group" style="padding-bottom: 100%;">
+                        <input type="file" id="imagen-producto" name="imagen" accept="image/*" class="hidden"
+                            onchange="previsualizarImagen(this)">
 
                         <!-- Área de Drop (llena todo el cuadrado) -->
-                        <div id="image-preview-container"
+                        <div id="contenedor-previsualizacion-imagen"
                             class="absolute inset-0 bg-gray-50 rounded-lg border-2 border-gray-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-fashion-black">
 
                             <!-- Placeholder -->
-                            <div id="upload-placeholder" class="text-center space-y-4">
+                            <div id="placeholder-subida" class="text-center space-y-4">
                                 <div
                                     class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-md mx-auto group-hover:scale-110 transition-transform">
                                     <i
@@ -1032,11 +1030,11 @@ include 'Cabecera.php';
                             </div>
 
                             <!-- Preview Image (llena todo el cuadrado) -->
-                            <img id="image-preview" src="#" alt="Vista previa"
+                            <img id="previsualizacion-imagen" src="#" alt="Vista previa"
                                 class="hidden absolute inset-0 w-full h-full object-cover z-10">
 
                             <!-- Overlay Hover -->
-                            <div id="change-image-overlay"
+                            <div id="capa-cambio-imagen"
                                 class="hidden absolute inset-0 bg-black bg-opacity-50 items-center justify-center group-hover:flex z-20">
                                 <p
                                     class="text-white font-semibold text-sm bg-black bg-opacity-60 px-4 py-2 rounded-full">
@@ -1052,11 +1050,11 @@ include 'Cabecera.php';
 
                     <!-- Nombre -->
                     <div class="space-y-2">
-                        <label for="prod_nombre"
+                        <label for="nombre-producto"
                             class="block text-xs uppercase tracking-widest font-bold text-gray-500">
                             Nombre del Producto
                         </label>
-                        <input type="text" id="prod_nombre" name="nombre" required
+                        <input type="text" id="nombre-producto" name="nombre" required
                             class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-fashion-black focus:ring-0 transition-all text-fashion-black font-medium"
                             placeholder="Ej: Camiseta Básica Oversize">
                     </div>
@@ -1066,21 +1064,21 @@ include 'Cabecera.php';
 
                         <!-- Precio -->
                         <div class="space-y-2">
-                            <label for="prod_precio"
+                            <label for="precio-producto"
                                 class="block text-xs uppercase tracking-widest font-bold text-gray-500">
                                 Precio (€)
                             </label>
                             <div
                                 class="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden focus-within:border-fashion-black transition-colors">
-                                <input type="number" id="prod_precio" name="precio" required step="0.50" min="0"
+                                <input type="number" id="precio-producto" name="precio" required step="0.50" min="0"
                                     value="0.00"
                                     class="w-full bg-transparent border-none pl-4 pr-2 py-3 px-3 focus:ring-0 text-fashion-black font-bold appearance-none">
                                 <div class="flex border-l border-gray-200">
-                                    <button type="button" onclick="adjustValue('prod_precio', -0.5)"
+                                    <button type="button" onclick="ajustarValor('precio-producto', -0.5)"
                                         class="p-2 hover:bg-gray-100 text-gray-500 border-r border-gray-100">
                                         <i class="ph ph-minus text-xs"></i>
                                     </button>
-                                    <button type="button" onclick="adjustValue('prod_precio', 0.5)"
+                                    <button type="button" onclick="ajustarValor('precio-producto', 0.5)"
                                         class="p-2 hover:bg-gray-100 text-gray-500">
                                         <i class="ph ph-plus text-xs"></i>
                                     </button>
@@ -1090,14 +1088,14 @@ include 'Cabecera.php';
 
                         <!-- Descuento -->
                         <div class="space-y-2">
-                            <label for="prod_descuento"
+                            <label for="descuento-producto"
                                 class="block text-xs uppercase tracking-widest font-bold text-gray-500">
                                 Descuento (%)
                             </label>
                             <div
                                 class="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden focus-within:border-fashion-black transition-colors">
-                                <input type="number" id="prod_descuento" name="descuento" value="0" min="0" max="100"
-                                    step="1"
+                                <input type="number" id="descuento-producto" name="descuento" value="0" min="0"
+                                    max="100" step="1"
                                     class="w-full bg-transparent border-none pl-4 pr-2 py-3 px-3 focus:ring-0 text-fashion-black font-bold appearance-none">
                                 <div
                                     class="flex border-l border-gray-200 px-3 bg-gray-100 text-gray-500 font-bold text-xs items-center justify-center">
@@ -1110,11 +1108,11 @@ include 'Cabecera.php';
                         <div class="col-span-2 grid grid-cols-2 gap-4">
                             <!-- Stock Global -->
                             <div class="space-y-2">
-                                <label for="prod_stock"
+                                <label for="stock-producto"
                                     class="block text-xs uppercase tracking-widest font-bold text-gray-500">
                                     Stock Total
                                 </label>
-                                <input type="number" id="prod_stock" name="stock" value="0" min="0" required
+                                <input type="number" id="stock-producto" name="stock" value="0" min="0" required
                                     class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-fashion-black focus:ring-0 transition-all text-fashion-black font-bold appearance-none">
                             </div>
 
@@ -1123,11 +1121,11 @@ include 'Cabecera.php';
                                 <label class="block text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">
                                     Tallas Disponibles <span class="text-red-500">*</span>
                                 </label>
-                                <div id="sizes-container"
+                                <div id="contenedor-tallas"
                                     class="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200 relative z-50">
                                     <!-- Las filas de tallas se añadirán aquí dinámicamente -->
                                 </div>
-                                <button type="button" id="add-size-btn"
+                                <button type="button" id="boton-añadir-talla"
                                     class="mt-2 text-xs font-bold uppercase tracking-widest text-fashion-black border border-fashion-black px-4 py-2 hover:bg-fashion-black hover:text-white transition-colors">
                                     + Añadir Talla
                                 </button>
@@ -1137,11 +1135,11 @@ include 'Cabecera.php';
 
                     <!-- Categoría -->
                     <div class="space-y-2">
-                        <label for="prod_categoria_id"
+                        <label for="id-categoria-producto"
                             class="block text-xs uppercase tracking-widest font-bold text-gray-500">
                             Categoría
                         </label>
-                        <select id="prod_categoria_id" name="categoria_id" required
+                        <select id="id-categoria-producto" name="categoria_id" required
                             class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-fashion-black focus:ring-0 transition-all text-fashion-black cursor-pointer">
                             <option value="">Seleccionar Categoría</option>
                             <?php foreach ($categorias as $cat): ?>
@@ -1154,11 +1152,11 @@ include 'Cabecera.php';
 
                     <!-- Descripción -->
                     <div class="space-y-2">
-                        <label for="prod_descripcion"
+                        <label for="descripcion-producto"
                             class="block text-xs uppercase tracking-widest font-bold text-gray-500">
                             Descripción del Producto
                         </label>
-                        <textarea id="prod_descripcion" name="descripcion" rows="6"
+                        <textarea id="descripcion-producto" name="descripcion" rows="6"
                             class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-fashion-black focus:ring-0 transition-all resize-none text-fashion-black"
                             placeholder="Describe los detalles, materiales, tallas y cuidados del producto..."></textarea>
                     </div>
@@ -1169,7 +1167,7 @@ include 'Cabecera.php';
 
             <!-- Botones -->
             <div class="flex gap-4 pt-6 border-t border-gray-100">
-                <button type="button" onclick="closeProductModal()"
+                <button type="button" onclick="cerrarModalProducto()"
                     class="flex-1 bg-gray-200 text-gray-700 py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-gray-300 transition-all rounded-lg">
                     Cancelar
                 </button>

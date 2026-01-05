@@ -2,7 +2,7 @@
 // Lógica para filtrar por tallas
 // Se asume que 'tallasSeleccionadas' se define globalmente en la vista antes de cargar este script
 
-function toggleTalla(talla, btnElement) {
+function alternarTalla(talla, btnElement) {
     if (typeof window.tallasSeleccionadas === 'undefined') {
         window.tallasSeleccionadas = [];
     }
@@ -12,14 +12,14 @@ function toggleTalla(talla, btnElement) {
         window.tallasSeleccionadas = Object.values(window.tallasSeleccionadas);
     }
 
-    const index = window.tallasSeleccionadas.indexOf(talla.toString());
+    const indice = window.tallasSeleccionadas.indexOf(talla.toString());
 
-    if (index === -1) {
+    if (indice === -1) {
         window.tallasSeleccionadas.push(talla.toString());
         btnElement.classList.remove('bg-white', 'text-black', 'border-gray-200');
         btnElement.classList.add('bg-black', 'text-white', 'border-black');
     } else {
-        window.tallasSeleccionadas.splice(index, 1);
+        window.tallasSeleccionadas.splice(indice, 1);
         btnElement.classList.remove('bg-black', 'text-white', 'border-black');
         btnElement.classList.add('bg-white', 'text-black', 'border-gray-200');
     }
@@ -38,9 +38,9 @@ function aplicarFiltros() {
         });
     }
 
-    const priceSlider = document.getElementById('filter-price-slider');
-    if (priceSlider) {
-        url.searchParams.set('precio', priceSlider.value);
+    const deslizadorPrecio = document.getElementById('filtro-precio-deslizador');
+    if (deslizadorPrecio) {
+        url.searchParams.set('precio', deslizadorPrecio.value);
     }
 
     // Resetear página al filtrar para evitar que se quede en una página vacía

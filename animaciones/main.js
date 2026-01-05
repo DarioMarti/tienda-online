@@ -1,100 +1,100 @@
-const LOGIN = document.getElementById('login');
-const SEARCH_TRIGGER = document.getElementById('search-trigger');
-const SEARCH_CONTAINER = document.getElementById('search-container');
-const SEARCH_INPUT = document.getElementById('search-input');
-const LOGIN_SIDEBAR = document.getElementById('login-sidebar');
-const CLOSE_LOGIN = document.getElementById('close-login');
+const BOTON_LOGIN = document.getElementById('btn-login');
+const DISPARADOR_BUSQUEDA = document.getElementById('disparador-busqueda');
+const CONTENEDOR_BUSQUEDA = document.getElementById('contenedor-busqueda');
+const INPUT_BUSQUEDA = document.getElementById('input-busqueda');
+const SIDEBAR_LOGIN = document.getElementById('sidebar-login');
+const CERRAR_LOGIN = document.getElementById('cerrar-login');
 
 // Elementos del Carrito
-const CART_ICON = document.getElementById('cart-icon');
-const CART_SIDEBAR = document.getElementById('cart-sidebar');
-const CLOSE_CART = document.getElementById('close-cart');
-const CONT_SHOPPING = document.getElementById('continue-shopping');
-const SIDE_OVERLAY = document.getElementById('side-overlay');
-const CART_ITEMS_CONT = document.getElementById('cart-items-container');
-const CART_SUBTOTAL = document.getElementById('cart-subtotal');
-const CHECKOUT_BTN = document.getElementById('checkout-btn');
+const ICONO_CARRITO = document.getElementById('icono-carrito');
+const SIDEBAR_CARRITO = document.getElementById('sidebar-carrito');
+const CERRAR_CARRITO = document.getElementById('cerrar-carrito');
+const CONTINUAR_COMPRANDO = document.getElementById('continuar-comprando');
+const CAPA_SUPERPUESTA = document.getElementById('capa-superpuesta');
+const CONTENEDOR_ITEMS_CARRITO = document.getElementById('contenedor-items-carrito');
+const SUB_TOTAL_CARRITO = document.getElementById('subtotal-carrito');
+const BOTON_FINALIZAR_COMPRA = document.getElementById('btn-finalizar-compra');
 
 window.addEventListener('scroll', function () {
-    const topBar = document.getElementById('top-bar');
-    const mainHeader = document.getElementById('main-header');
+    const barraSuperior = document.getElementById('barra-superior');
+    const cabeceraPrincipal = document.getElementById('cabecera-principal');
 
     if (window.scrollY > 30) {
         // Ocultar barra superior
-        topBar.style.height = '0';
-        topBar.style.padding = '0';
-        topBar.style.opacity = '0';
-        topBar.style.overflow = 'hidden';
-        mainHeader.style.backgroundColor = 'white';
+        barraSuperior.style.height = '0';
+        barraSuperior.style.padding = '0';
+        barraSuperior.style.opacity = '0';
+        barraSuperior.style.overflow = 'hidden';
+        cabeceraPrincipal.style.backgroundColor = 'white';
     } else {
         // Mostrar barra superior
-        topBar.style.height = '';
-        topBar.style.padding = '';
-        topBar.style.opacity = '1';
-        topBar.style.overflow = '';
+        barraSuperior.style.height = '';
+        barraSuperior.style.padding = '';
+        barraSuperior.style.opacity = '1';
+        barraSuperior.style.overflow = '';
     }
 });
 
 // Función para cerrar todos los sidebars
-function closeSidebars() {
-    [LOGIN_SIDEBAR, CART_SIDEBAR].forEach(sidebar => {
+function cerrarSidebars() {
+    [SIDEBAR_LOGIN, SIDEBAR_CARRITO].forEach(sidebar => {
         if (sidebar) {
-            sidebar.classList.remove('login-sidebar-open');
-            sidebar.classList.add('login-sidebar-close');
+            sidebar.classList.remove('sidebar-abierto');
+            sidebar.classList.add('sidebar-cerrado');
         }
     });
-    if (SIDE_OVERLAY) SIDE_OVERLAY.classList.add('hidden');
-    if (LOGIN) LOGIN.style.color = 'black';
+    if (CAPA_SUPERPUESTA) CAPA_SUPERPUESTA.classList.add('hidden');
+    if (BOTON_LOGIN) BOTON_LOGIN.style.color = 'black';
 }
 
-// LOGIN EVENTS
-if (LOGIN) {
-    LOGIN.addEventListener('click', function () {
-        if (LOGIN_SIDEBAR.classList.contains('login-sidebar-open')) {
-            closeSidebars();
+// EVENTOS DE LOGIN
+if (BOTON_LOGIN) {
+    BOTON_LOGIN.addEventListener('click', function () {
+        if (SIDEBAR_LOGIN.classList.contains('sidebar-abierto')) {
+            cerrarSidebars();
         } else {
-            closeSidebars();
-            LOGIN_SIDEBAR.classList.add('login-sidebar-open');
-            LOGIN_SIDEBAR.classList.remove('login-sidebar-close');
-            if (SIDE_OVERLAY) SIDE_OVERLAY.classList.remove('hidden');
-            LOGIN.style.color = ' rgb(212 175 55 / var(--tw-text-opacity, 1))';
+            cerrarSidebars();
+            SIDEBAR_LOGIN.classList.add('sidebar-abierto');
+            SIDEBAR_LOGIN.classList.remove('sidebar-cerrado');
+            if (CAPA_SUPERPUESTA) CAPA_SUPERPUESTA.classList.remove('hidden');
+            BOTON_LOGIN.style.color = ' rgb(212 175 55 / var(--tw-text-opacity, 1))';
         }
     });
 }
 
-// SEARCH EVENTS
-if (SEARCH_TRIGGER) {
-    SEARCH_TRIGGER.addEventListener('click', function (e) {
+// EVENTOS DE BÚSQUEDA
+if (DISPARADOR_BUSQUEDA) {
+    DISPARADOR_BUSQUEDA.addEventListener('click', function (e) {
         e.stopPropagation();
-        if (SEARCH_CONTAINER.classList.contains('hidden')) {
-            SEARCH_CONTAINER.classList.remove('hidden');
+        if (CONTENEDOR_BUSQUEDA.classList.contains('hidden')) {
+            CONTENEDOR_BUSQUEDA.classList.remove('hidden');
             setTimeout(() => {
-                SEARCH_INPUT.focus();
+                INPUT_BUSQUEDA.focus();
             }, 100);
         } else {
-            SEARCH_CONTAINER.classList.add('hidden');
+            CONTENEDOR_BUSQUEDA.classList.add('hidden');
         }
     });
 }
 
-// Cerrar buscador al pulsar fuera
+// CERRAR BUSCADOR AL PULSAR FUERA DE LA BARRA
 document.addEventListener('click', function (e) {
-    if (SEARCH_CONTAINER && !SEARCH_CONTAINER.contains(e.target) && e.target !== SEARCH_TRIGGER) {
-        SEARCH_CONTAINER.classList.add('hidden');
+    if (CONTENEDOR_BUSQUEDA && !CONTENEDOR_BUSQUEDA.contains(e.target)) {
+        CONTENEDOR_BUSQUEDA.classList.add('hidden');
     }
 });
 
 // Evitar que clicks dentro del buscador lo cierren
-if (SEARCH_CONTAINER) {
-    SEARCH_CONTAINER.addEventListener('click', (e) => e.stopPropagation());
+if (CONTENEDOR_BUSQUEDA) {
+    CONTENEDOR_BUSQUEDA.addEventListener('click', (e) => e.stopPropagation());
 }
 
-if (SEARCH_INPUT) {
-    SEARCH_INPUT.addEventListener('keypress', function (e) {
+if (INPUT_BUSQUEDA) {
+    INPUT_BUSQUEDA.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
-            const value = SEARCH_INPUT.value.trim();
-            if (value) {
-                window.location.href = `index.php?search=${encodeURIComponent(value)}`;
+            const valor = INPUT_BUSQUEDA.value.trim();
+            if (valor) {
+                window.location.href = `index.php?busqueda=${encodeURIComponent(valor)}`;
             } else {
                 window.location.href = 'index.php';
             }
@@ -102,42 +102,42 @@ if (SEARCH_INPUT) {
     });
 }
 
-if (CLOSE_LOGIN) {
-    CLOSE_LOGIN.addEventListener('click', closeSidebars);
+if (CERRAR_LOGIN) {
+    CERRAR_LOGIN.addEventListener('click', cerrarSidebars);
 }
 
-// CART EVENTS
-if (CART_ICON) {
-    CART_ICON.addEventListener('click', function () {
-        if (CART_SIDEBAR.classList.contains('login-sidebar-open')) {
-            closeSidebars();
+// EVENTOS DE CARRITO
+if (ICONO_CARRITO) {
+    ICONO_CARRITO.addEventListener('click', function () {
+        if (SIDEBAR_CARRITO.classList.contains('sidebar-abierto')) {
+            cerrarSidebars();
         } else {
-            closeSidebars();
-            CART_SIDEBAR.classList.add('login-sidebar-open');
-            CART_SIDEBAR.classList.remove('login-sidebar-close');
-            if (SIDE_OVERLAY) SIDE_OVERLAY.classList.remove('hidden');
-            loadCart();
+            cerrarSidebars();
+            SIDEBAR_CARRITO.classList.add('sidebar-abierto');
+            SIDEBAR_CARRITO.classList.remove('sidebar-cerrado');
+            if (CAPA_SUPERPUESTA) CAPA_SUPERPUESTA.classList.remove('hidden');
+            cargarCarrito();
         }
     });
 }
 
-if (CLOSE_CART) CLOSE_CART.addEventListener('click', closeSidebars);
-if (CONT_SHOPPING) CONT_SHOPPING.addEventListener('click', closeSidebars);
-if (SIDE_OVERLAY) SIDE_OVERLAY.addEventListener('click', closeSidebars);
+if (CERRAR_CARRITO) CERRAR_CARRITO.addEventListener('click', cerrarSidebars);
+if (CONTINUAR_COMPRANDO) CONTINUAR_COMPRANDO.addEventListener('click', cerrarSidebars);
+if (CAPA_SUPERPUESTA) CAPA_SUPERPUESTA.addEventListener('click', cerrarSidebars);
 
 // Función para cargar el carrito dinámicamente
-async function loadCart() {
-    if (!CART_ITEMS_CONT) return;
+async function cargarCarrito() {
+    if (!CONTENEDOR_ITEMS_CARRITO) return;
 
-    CART_ITEMS_CONT.innerHTML = '<p class="text-sm text-gray-500 text-center py-10">Actualizando cesta...</p>';
+    CONTENEDOR_ITEMS_CARRITO.innerHTML = '<p class="text-sm text-gray-500 text-center py-10">Actualizando cesta...</p>';
 
     try {
-        const response = await fetch('../modelos/carrito/obtener-carrito.php');
-        const data = await response.json();
+        const respuesta = await fetch('../modelos/carrito/obtener-carrito.php');
+        const datos = await respuesta.json();
 
-        if (data.success && data.items.length > 0) {
+        if (datos.success && datos.items.length > 0) {
             let html = '';
-            data.items.forEach(item => {
+            datos.items.forEach(item => {
                 html += `
                     <div class="flex gap-4 group relative">
                         <div class="w-20 aspect-[3/4] bg-gray-50 overflow-hidden rounded-md">
@@ -147,7 +147,7 @@ async function loadCart() {
                             <div>
                                 <div class="flex justify-between items-start">
                                     <h4 class="text-xs font-bold uppercase tracking-widest text-fashion-black pr-4">${item.nombre}</h4>
-                                    <button onclick="removeFromCart('${item.key}')" class="text-gray-300 hover:text-red-500 transition-colors">
+                                    <button onclick="eliminarDelCarrito('${item.key}')" class="text-gray-300 hover:text-red-500 transition-colors">
                                         <i class="ph ph-trash text-sm"></i>
                                     </button>
                                 </div>
@@ -158,64 +158,158 @@ async function loadCart() {
                     </div>
                 `;
             });
-            CART_ITEMS_CONT.innerHTML = html;
-            if (CART_SUBTOTAL) CART_SUBTOTAL.textContent = data.subtotal_f;
+            CONTENEDOR_ITEMS_CARRITO.innerHTML = html;
+            if (SUBTOTAL_CARRITO) SUBTOTAL_CARRITO.textContent = datos.subtotal_f;
 
             // Habilitar botón de pago
-            if (CHECKOUT_BTN) {
-                CHECKOUT_BTN.classList.remove('bg-gray-200', 'text-gray-400', 'cursor-not-allowed', 'pointer-events-none');
-                CHECKOUT_BTN.classList.add('bg-fashion-black', 'text-white', 'hover:bg-fashion-accent');
+            if (BTN_FINALIZAR_COMPRA) {
+                BTN_FINALIZAR_COMPRA.classList.remove('bg-gray-200', 'text-gray-400', 'cursor-not-allowed', 'pointer-events-none');
+                BTN_FINALIZAR_COMPRA.classList.add('bg-fashion-black', 'text-white', 'hover:bg-fashion-accent');
             }
         } else {
-            CART_ITEMS_CONT.innerHTML = `
+            CONTENEDOR_ITEMS_CARRITO.innerHTML = `
                 <div class="text-center py-20 space-y-4">
                     <i class="ph ph-handbag text-5xl text-gray-200"></i>
                     <p class="text-sm text-gray-500 uppercase tracking-widest leading-loose">Tu cesta está vacía</p>
                 </div>
             `;
-            if (CART_SUBTOTAL) CART_SUBTOTAL.textContent = '0,00 €';
+            if (SUBTOTAL_CARRITO) SUBTOTAL_CARRITO.textContent = '0,00 €';
 
             // Deshabilitar botón de pago
-            if (CHECKOUT_BTN) {
-                CHECKOUT_BTN.classList.add('bg-gray-200', 'text-gray-400', 'cursor-not-allowed', 'pointer-events-none');
-                CHECKOUT_BTN.classList.remove('bg-fashion-black', 'text-white', 'hover:bg-fashion-accent');
+            if (BTN_FINALIZAR_COMPRA) {
+                BTN_FINALIZAR_COMPRA.classList.add('bg-gray-200', 'text-gray-400', 'cursor-not-allowed', 'pointer-events-none');
+                BTN_FINALIZAR_COMPRA.classList.remove('bg-fashion-black', 'text-white', 'hover:bg-fashion-accent');
             }
         }
     } catch (error) {
         console.error('Error al cargar el carrito:', error);
-        CART_ITEMS_CONT.innerHTML = '<p class="text-xs text-red-500 text-center py-10 uppercase tracking-widest">Error al conectar con la cesta</p>';
+        CONTENEDOR_ITEMS_CARRITO.innerHTML = '<p class="text-xs text-red-500 text-center py-10 uppercase tracking-widest">Error al conectar con la cesta</p>';
     }
 }
 
 // Función para eliminar un item del carrito
-async function removeFromCart(key) {
+async function eliminarDelCarrito(clave) {
     try {
-        const response = await fetch('../modelos/carrito/eliminar-item-carrito.php', {
+        const respuesta = await fetch('../modelos/carrito/eliminar-item-carrito.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ key: key })
+            body: JSON.stringify({ key: clave })
         });
 
-        const result = await response.json();
+        const resultado = await respuesta.json();
 
-        if (result.success) {
+        if (resultado.success) {
             // Recargar el carrito para mostrar cambios
-            loadCart();
+            cargarCarrito();
 
             // Actualizar contador en la cabecera
-            const badge = document.getElementById('cart-count-badge');
-            if (badge) {
-                badge.textContent = result.total_items;
-                if (result.total_items === 0) {
-                    badge.classList.add('hidden');
+            const contador = document.getElementById('contador-carrito');
+            if (contador) {
+                contador.textContent = resultado.total_items;
+                if (resultado.total_items === 0) {
+                    contador.classList.add('hidden');
                 }
             }
         } else {
-            alert('Error: ' + result.error);
+            alert('Error: ' + resultado.error);
         }
     } catch (error) {
         console.error('Error al eliminar del carrito:', error);
+    }
+}
+// --- QUICK ADD TO CART (CATALOG) ---
+
+function seleccionarTallaRapida(productoId, talla, btn) {
+    // Buscar todos los botones de talla del mismo producto
+    const tarjetaProducto = btn.closest('.group');
+    const todosLosBtns = tarjetaProducto.querySelectorAll('.quick-size-btn');
+
+    // Quitar activo de todos
+    todosLosBtns.forEach(b => {
+        b.classList.remove('bg-white', 'text-fashion-black', 'border-white');
+        b.classList.add('border-white/30', 'text-white');
+    });
+
+    // Activar el seleccionado
+    btn.classList.remove('border-white/30', 'text-white');
+    btn.classList.add('bg-white', 'text-fashion-black', 'border-white');
+
+    // Guardar la talla en el botón de añadir
+    const btnAñadir = document.getElementById(`quick-add-btn-${productoId}`);
+    if (btnAñadir) {
+        btnAñadir.setAttribute('data-selected-size', talla);
+        btnAñadir.textContent = `Añadir talla ${talla}`;
+    }
+}
+
+async function añadirAlCarritoRapido(productoId) {
+    const btnAñadir = document.getElementById(`quick-add-btn-${productoId}`);
+    const talla = btnAñadir.getAttribute('data-selected-size');
+
+    if (!talla) {
+        // Notificación visual si no hay talla
+        btnAñadir.textContent = 'Selecciona talla';
+        btnAñadir.classList.add('bg-red-500', 'text-white');
+        setTimeout(() => {
+            btnAñadir.textContent = 'Añadir a la cesta';
+            btnAñadir.classList.remove('bg-red-500', 'text-white');
+        }, 1500);
+        return;
+    }
+
+    // Feedback visual de carga
+    const textoOriginal = btnAñadir.textContent;
+    btnAñadir.disabled = true;
+    btnAñadir.textContent = 'Añadiendo...';
+
+    try {
+        const datosFormulario = new FormData();
+        datosFormulario.append('producto_id', productoId);
+        datosFormulario.append('talla', talla);
+        datosFormulario.append('cantidad', 1);
+
+        const respuesta = await fetch('../modelos/carrito/agregar-carrito.php', {
+            method: 'POST',
+            body: datosFormulario
+        });
+
+        const resultado = await respuesta.json();
+
+        if (resultado.success) {
+            // Actualizar badge del carrito si existe
+            const contador = document.getElementById('contador-carrito');
+            if (contador) {
+                contador.textContent = resultado.total_items;
+                contador.classList.remove('hidden');
+            }
+
+            // Éxito: Feedback visual
+            btnAñadir.textContent = '¡Añadido!';
+            btnAñadir.classList.remove('bg-white', 'text-fashion-black');
+            btnAñadir.classList.add('bg-green-600', 'text-white');
+
+            // Reabrir el carrito para mostrar el item (opcional pero común)
+            setTimeout(() => {
+                if (typeof ICONO_CARRITO !== 'undefined' && ICONO_CARRITO) ICONO_CARRITO.click();
+            }, 500);
+
+            setTimeout(() => {
+                btnAñadir.textContent = textoOriginal;
+                btnAñadir.classList.remove('bg-green-600', 'text-white');
+                btnAñadir.classList.add('bg-white', 'text-fashion-black');
+                btnAñadir.disabled = false;
+            }, 2000);
+        } else {
+            alert('Error: ' + resultado.message);
+            btnAñadir.textContent = textoOriginal;
+            btnAñadir.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error en Quick Add:', error);
+        alert('Error al conectar con el servidor.');
+        btnAñadir.textContent = textoOriginal;
+        btnAñadir.disabled = false;
     }
 }

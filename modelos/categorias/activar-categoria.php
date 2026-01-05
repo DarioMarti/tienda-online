@@ -1,11 +1,9 @@
 <?php
 require_once "../../config/conexion.php";
-session_start();
+ob_start();
 
-if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
-    header("Location: ../../index.php");
-    exit;
-}
+// Verificación de seguridad
+restringirAccesoAPI();
 
 try {
     $conn = conectar();

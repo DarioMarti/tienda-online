@@ -1,13 +1,10 @@
 <?php
 header('Content-Type: application/json');
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
-session_start();
+ob_start();
 
-// Verificar seguridad: Solo administradores y empleados
-if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
-    echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
-    exit();
-}
+// Verificación de seguridad
+restringirAccesoAPI();
 
 try {
     $conn = conectar();
@@ -17,12 +14,11 @@ try {
     if (!$id)
         throw new Exception("ID de pedido no proporcionado.");
 
-    // 1. Obtener estado e items para restaurar stock si no estaba cancelado
     $stmtStatus = $conn->prepare("SELECT estado FROM pedidos WHERE id = ?");
     $stmtStatus->execute([$id]);
-    $order = $stmtStatus->fetch(PDO::FETCH_ASSOC);
+    $pedido = $stmtStatus->fetch(PDO::FETCH_ASSOC);
 
-    if ($order && $order['estado'] !== 'cancelado') {
+    if ($pedido && $pedido['estado'] !== 'cancelado') {
         $stmtItems = $conn->prepare("SELECT producto_id, cantidad FROM detalles_pedido WHERE pedido_id = ?");
         $stmtItems->execute([$id]);
         $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
@@ -33,14 +29,9 @@ try {
         }
     }
 
-    // 2. Eliminación Lógica (Baja Lógica)
-    // No borramos físicamente, solo marcamos activo = 0
-    // Opcional: También cambiar estado a 'cancelado' si se desea, pero baja lógica implica ocultado.
 
     $stmt = $conn->prepare("UPDATE pedidos SET activo = 0 WHERE id = ?");
     $stmt->execute([$id]);
-
-    // No necesitamos borrar detalles_pedido físicamente si usamos baja lógica en el padre.
 
     $conn->commit();
 

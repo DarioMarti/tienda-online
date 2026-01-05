@@ -1,12 +1,9 @@
 <?php
-session_start();
-require("../../config/conexion.php");
+require_once "../../config/conexion.php";
+ob_start();
 
-// Verificar permisos de admin
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
-    header("Location: ../../src/index.php");
-    exit;
-}
+// COMPROBAR SI SE TIENE ACCESO
+restringirSoloAdminAPI();
 
 $conn = conectar();
 
@@ -21,15 +18,14 @@ $password = $_POST['password'] ?? '';
 
 try {
     if ($action === 'create') {
-        // Validar que el email no exista
         $stmt = $conn->prepare("SELECT id FROM usuarios WHERE email = :email");
         $stmt->execute([':email' => $email]);
         if ($stmt->fetch()) {
-            die("Error: El email ya está registrado.");
+            throw new Exception("Error: El email ya está registrado.");
         }
 
         if (empty($password)) {
-            die("Error: La contraseña es obligatoria para nuevos usuarios.");
+            throw new Exception("Error: La contraseña es obligatoria para nuevos usuarios.");
         }
 
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
@@ -48,9 +44,9 @@ try {
         ]);
 
     } elseif ($action === 'update' && $id) {
-        // Protección: No cambiar el propio rol
+
+        // NO SE PUEDE CAMBIAR EL ROL DE UN ADMINISTRADOR
         if ($id == $_SESSION['usuario']['id'] && $rol !== 'admin') {
-            // Si intenta cambiarse a sí mismo a no-admin, forzamos admin
             $rol = 'admin';
         }
 
@@ -64,7 +60,7 @@ try {
             ':id' => $id
         ];
 
-        // Si hay contraseña nueva, actualizarla
+        // CAMBIAR CONTRASEÑA SI SE INTRODUCE UNA NUEVA
         if (!empty($password)) {
             $sql .= ", password = :password";
             $params[':password'] = password_hash($password, PASSWORD_DEFAULT);

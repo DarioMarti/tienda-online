@@ -1,13 +1,10 @@
 <?php
 header('Content-Type: application/json');
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
-session_start();
+ob_start();
 
-// Verificar seguridad: Solo administradores y empleados
-if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
-    echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
-    exit();
-}
+// Verificación de seguridad
+restringirAccesoAPI();
 
 try {
     $conn = conectar();
@@ -16,7 +13,6 @@ try {
     if (!$id)
         throw new Exception("ID de pedido no proporcionado.");
 
-    // Reactivar el pedido
     $stmt = $conn->prepare("UPDATE pedidos SET activo = 1 WHERE id = ?");
     $stmt->execute([$id]);
 

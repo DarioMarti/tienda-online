@@ -1,0 +1,5 @@
+/vendor/
+config/stripe_config.php
+composer.phar
+*.log
+.env

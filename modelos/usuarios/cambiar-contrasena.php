@@ -1,14 +1,11 @@
 <?php
-session_start();
-require("../../config/conexion.php");
+require_once "../../config/conexion.php";
+ob_start();
 
 header('Content-Type: application/json');
 
 // Verificar que el usuario está logueado
-if (!isset($_SESSION['usuario'])) {
-    echo json_encode(['success' => false, 'message' => 'No estás autenticado']);
-    exit;
-}
+restringirInvitadosAPI();
 
 try {
     $conn = conectar();

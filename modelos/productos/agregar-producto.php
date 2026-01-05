@@ -5,12 +5,8 @@ session_start();
 header('Content-Type: application/json');
 ob_start();
 
-// Validar seguridad
-if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
-    ob_end_clean();
-    echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
-    exit();
-}
+// COMPRUEBA SI SE ES EMPLEADO O ADMINISTRADOR
+restringirAccesoAPI();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ob_end_clean();
@@ -20,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 try {
     $conn = conectar();
+    $conn->beginTransaction();
 
     $nombre = $_POST['nombre'] ?? '';
     $descripcion = $_POST['descripcion'] ?? '';
@@ -27,29 +24,27 @@ try {
     $descuento = floatval($_POST['descuento'] ?? 0);
     $stock = intval($_POST['stock'] ?? 0);
     $categoria_id = !empty($_POST['categoria_id']) ? intval($_POST['categoria_id']) : null;
-
-    // Manejo de la imagen
     $imagenRuta = '';
 
-    // Procesar nueva imagen si se ha subido
+    // VALIDAR IMAGEN SUBIDA, SE MEJORA LA SEGURIDAD Y SE AÑADE A LA RUTA DEFINITIVA
     if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = '../../img/productos/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+        $directorioSubida = '../../img/productos/';
+        if (!is_dir($directorioSubida)) {
+            mkdir($directorioSubida, 0755, true);
         }
 
-        $fileExtension = strtolower(pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION));
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $extensionFichero = strtolower(pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION));
+        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
-        if (!in_array($fileExtension, $allowedExtensions)) {
+        if (!in_array($extensionFichero, $extensionesPermitidas)) {
             throw new Exception("Extensión de archivo no permitida.");
         }
 
-        $newFileName = md5(time() . $_FILES['imagen']['name']) . '.' . $fileExtension;
-        $destPath = $uploadDir . $newFileName;
+        $nombreFichero = md5(time() . $_FILES['imagen']['name']) . '.' . $extensionFichero;
+        $rutaCompleta = $directorioSubida . $nombreFichero;
 
-        if (move_uploaded_file($_FILES['imagen']['tmp_name'], $destPath)) {
-            $imagenRuta = 'img/productos/' . $newFileName;
+        if (move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaCompleta)) {
+            $imagenRuta = 'img/productos/' . $nombreFichero;
         } else {
             throw new Exception("Error al guardar la imagen.");
         }
@@ -57,7 +52,7 @@ try {
         throw new Exception("La imagen es obligatoria para nuevos productos.");
     }
 
-    // Insertar nuevo producto
+    // INSERTAR EL PRODUCTO
     $sentencia = "INSERT INTO productos (nombre, descripcion, precio, descuento, stock, imagen, categoria_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sentencia);
     $stmt->execute([$nombre, $descripcion, $precio, $descuento, $stock, $imagenRuta, $categoria_id]);
@@ -70,18 +65,18 @@ try {
         throw new Exception("Debes introducir al menos una talla obligatoriamente.");
     }
 
-    if (!empty($tallas_stock)) {
-        $sqlTalla = "INSERT INTO producto_tallas (producto_id, talla, stock) VALUES (?, ?, ?)";
-        $stmtTalla = $conn->prepare($sqlTalla);
+    $sqlTalla = "INSERT INTO producto_tallas (producto_id, talla, stock) VALUES (?, ?, ?)";
+    $stmtTalla = $conn->prepare($sqlTalla);
 
-        foreach ($tallas_stock as $item) {
-            $talla = trim($item['talla']);
-            $stockTalla = 0; // Ya no usamos stock por talla
-            if (!empty($talla)) {
-                $stmtTalla->execute([$producto_id, $talla, $stockTalla]);
-            }
+    foreach ($tallas_stock as $item) {
+        $talla = trim($item['talla']);
+        $stockTalla = 0;
+        if (!empty($talla)) {
+            $stmtTalla->execute([$producto_id, $talla, $stockTalla]);
         }
     }
+
+    $conn->commit();
 
     ob_end_clean();
     echo json_encode([
@@ -90,6 +85,9 @@ try {
     ]);
 
 } catch (Exception $e) {
+    if (isset($conn) && $conn->inTransaction()) {
+        $conn->rollBack();
+    }
     if (ob_get_length())
         ob_end_clean();
     echo json_encode([

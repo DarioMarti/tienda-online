@@ -1,13 +1,10 @@
 <?php
 header('Content-Type: application/json');
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
-session_start();
+ob_start();
 
-// Verificar seguridad: Solo administradores y empleados
-if (!isset($_SESSION['usuario']) || !in_array($_SESSION['usuario']['rol'], ['admin', 'empleado'])) {
-    echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
-    exit();
-}
+// Verificación de seguridad
+restringirAccesoAPI();
 
 try {
     $conn = conectar();
@@ -20,8 +17,6 @@ try {
     $direccion_envio = $_POST['direccion_envio'] ?? '';
     $ciudad = $_POST['ciudad'] ?? '';
     $provincia = $_POST['provincia'] ?? '';
-
-    // Datos de productos
     $producto_ids = $_POST['producto_id'] ?? [];
     $cantidades = $_POST['cantidad'] ?? [];
 
@@ -33,7 +28,7 @@ try {
         throw new Exception("El pedido debe tener al menos un producto.");
     }
 
-    $usuario_id = null;
+    $usuario_Sid = null;
     if ($usuario_email) {
         $stmtUser = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
         $stmtUser->execute([$usuario_email]);
@@ -54,35 +49,33 @@ try {
 
     // 2. Insertar Detalles del Pedido y Actualizar Stock
     $stmtItem = $conn->prepare("INSERT INTO detalles_pedido (pedido_id, producto_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?)");
-    $stmtProduct = $conn->prepare("SELECT precio, stock, nombre FROM productos WHERE id = ? FOR UPDATE");
-    $stmtUpdateStock = $conn->prepare("UPDATE productos SET stock = stock - ? WHERE id = ?");
+    $stmtProducto = $conn->prepare("SELECT precio, stock, nombre FROM productos WHERE id = ? FOR UPDATE");
+    $stmtActualizarStock = $conn->prepare("UPDATE productos SET stock = stock - ? WHERE id = ?");
 
     foreach ($producto_ids as $index => $prod_id) {
         if (empty($prod_id))
             continue;
 
         $cantidad = intval($cantidades[$index] ?? 1);
+        $stmtProducto->execute([$prod_id]);
+        $producto = $stmtProducto->fetch(PDO::FETCH_ASSOC);
 
-        // Obtener datos actuales del producto (BLOQUEANDO la fila para evitar condiciones de carrera)
-        $stmtProduct->execute([$prod_id]);
-        $prod = $stmtProduct->fetch(PDO::FETCH_ASSOC);
-
-        if (!$prod) {
+        if (!$producto) {
             throw new Exception("El producto con ID $prod_id no existe.");
         }
 
-        if ($prod['stock'] < $cantidad) {
-            throw new Exception("Stock insuficiente para '{$prod['nombre']}'. Disponible: {$prod['stock']}, Solicitado: $cantidad");
+        if ($producto['stock'] < $cantidad) {
+            throw new Exception("Stock insuficiente para '{$producto['nombre']}'. Disponible: {$producto['stock']}, Solicitado: $cantidad");
         }
 
-        $precio_unitario = floatval($prod['precio']);
+        $precio_unitario = floatval($producto['precio']);
 
-        // Insertar detalle
+        // INSERTAR LOS DETAsLLES DEL PEDIDO
         $stmtItem->execute([$pedido_id, $prod_id, $cantidad, $precio_unitario]);
 
-        // Restar stock solo si el pedido NO nace cancelado
+        // RESTAR EL STOCK SOLO SI EL PEDIDO NO NACE CANCELADO
         if ($estado !== 'cancelado') {
-            $stmtUpdateStock->execute([$cantidad, $prod_id]);
+            $stmtActualizarStock->execute([$cantidad, $prod_id]);
         }
     }
 
@@ -102,5 +95,4 @@ try {
         'message' => 'Error: ' . $e->getMessage()
     ]);
 }
-
 ?>

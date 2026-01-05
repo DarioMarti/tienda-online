@@ -112,6 +112,30 @@ $categorias = mostrarCategorias();
                                         <span
                                             class="bg-red-600 text-white text-[10px] font-bold px-3 py-1 text-center uppercase tracking-widest">-<?php echo intval($producto['descuento']); ?>%</span>
                                     </div>
+
+                                    <!-- Quick Add (Aparece en hover) -->
+                                    <div
+                                        class="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-all duration-500 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-12">
+
+                                        <!-- Selector de Tallas Rápidas -->
+                                        <div class="flex flex-wrap justify-center gap-2 mb-4">
+                                            <?php
+                                            $tallasProducto = !empty($producto['tallas_disponibles']) ? explode(',', $producto['tallas_disponibles']) : [];
+                                            foreach ($tallasProducto as $t) { ?>
+                                                <button type="button"
+                                                    onclick="event.preventDefault(); selectQuickSize(<?= $producto['id'] ?>, '<?= $t ?>', this)"
+                                                    class="quick-size-btn w-8 h-8 rounded-full border border-white/30 text-[10px] text-white hover:border-white transition-all flex items-center justify-center backdrop-blur-sm">
+                                                    <?= $t ?>
+                                                </button>
+                                            <?php } ?>
+                                        </div>
+
+                                        <button onclick="event.preventDefault(); quickAddToCart(<?= $producto['id'] ?>)"
+                                            id="quick-add-btn-<?= $producto['id'] ?>" data-selected-size=""
+                                            class="w-full bg-white text-fashion-black hover:bg-fashion-accent hover:text-white text-[10px] font-bold uppercase tracking-widest py-3 transition-colors rounded-sm shadow-xl">
+                                            Añadir a la cesta
+                                        </button>
+                                    </div>
                                 </div>
                             </a>
                             <div>

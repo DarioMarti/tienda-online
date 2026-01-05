@@ -103,11 +103,7 @@ include 'Cabecera.php';
                                 </div>
 
                                 <div class="flex gap-4">
-                                    <button
-                                        class="bg-fashion-black text-white px-8 py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-fashion-accent transition-colors rounded-lg">
-                                        Seguimiento
-                                    </button>
-                                    <button
+                                    <button onclick="verDetallesPedido(<?= $pedido['id'] ?>)"
                                         class="bg-white border border-gray-200 text-fashion-black px-8 py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-fashion-gray transition-colors rounded-lg">
                                         Detalles del pedido
                                     </button>
@@ -152,5 +148,165 @@ include 'Cabecera.php';
         </div>
     </div>
 </main>
+
+<!-- Modal Detalles de Pedido (Copia simplificada del Admin) -->
+<div id="modal-detalles-pedido"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center z-10">
+            <div>
+                <h2 class="font-editorial text-3xl italic text-fashion-black">Detalles del Pedido <span
+                        id="det-id-pedido"></span></h2>
+                <p class="text-gray-500 text-sm mt-1" id="det-fecha-pedido"></p>
+            </div>
+            <button onclick="cerrarModalDetallesPedido()"
+                class="text-gray-400 hover:text-fashion-black transition-colors">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+
+        <div class="p-8">
+            <!-- Información -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-100">
+                    <h3 class="text-xs uppercase tracking-widest font-bold text-gray-500 mb-4">Estado del Pedido</h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="font-semibold text-gray-700">Estado Actual:</span>
+                            <span id="det-badge-estado"
+                                class="px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase"></span>
+                        </div>
+                        <p class="text-gray-500 text-xs">Si tienes alguna duda sobre el estado de tu pedido, contacta
+                            con nuestro servicio de atención al cliente.</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-100">
+                    <h3 class="text-xs uppercase tracking-widest font-bold text-gray-500 mb-4">Dirección de Entrega</h3>
+                    <div class="space-y-2 text-sm">
+                        <p id="det-nombre-receptor" class="font-bold text-fashion-black"></p>
+                        <p id="det-direccion-envio" class="text-gray-700"></p>
+                        <p id="det-ubicacion-envio" class="text-gray-700"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Productos -->
+            <div>
+                <h3 class="text-xs uppercase tracking-widest font-bold text-gray-500 mb-4">Artículos del Pedido</h3>
+                <div class="overflow-x-auto border border-gray-100 rounded-lg">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-100">
+                                <th class="px-6 py-3 text-xs uppercase tracking-widest font-bold text-gray-500">Producto
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-xs uppercase tracking-widest font-bold text-gray-500 text-center">
+                                    Cant.</th>
+                                <th
+                                    class="px-6 py-3 text-xs uppercase tracking-widest font-bold text-gray-500 text-right">
+                                    Precio</th>
+                                <th
+                                    class="px-6 py-3 text-xs uppercase tracking-widest font-bold text-gray-500 text-right">
+                                    Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="det-lista-items" class="divide-y divide-gray-100">
+                            <!-- Items dinámicos -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray-50 font-bold border-t-2 border-fashion-black">
+                                <td colspan="3" class="px-6 py-4 text-right uppercase tracking-widest text-xs">Importe
+                                    Total</td>
+                                <td class="px-6 py-4 text-right text-xl text-fashion-black" id="det-total-pedido">0.00 €
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function verDetallesPedido(id) {
+        const modal = document.getElementById('modal-detalles-pedido');
+        if (!modal) return;
+
+        try {
+            const respuesta = await fetch(`../modelos/pedidos/obtener-detalle-pedido.php?id=${id}`);
+            const resultado = await respuesta.json();
+
+            if (resultado.success) {
+                const p = resultado.pedido;
+                const items = resultado.items;
+
+                document.getElementById('det-id-pedido').textContent = `#${p.id}`;
+                document.getElementById('det-fecha-pedido').textContent = new Date(p.fecha).toLocaleDateString('es-ES', {
+                    day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+
+                const badge = document.getElementById('det-badge-estado');
+                badge.textContent = p.estado;
+                badge.className = 'px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase ';
+                const classes = {
+                    'pendiente': 'bg-yellow-100 text-yellow-700',
+                    'pagado': 'bg-green-100 text-green-700',
+                    'enviado': 'bg-blue-100 text-blue-700',
+                    'entregado': 'bg-purple-100 text-purple-700',
+                    'cancelado': 'bg-red-100 text-red-700'
+                };
+                badge.className += (classes[p.estado] || 'bg-gray-100 text-gray-700');
+
+                document.getElementById('det-nombre-receptor').textContent = p.nombre_destinatario;
+                document.getElementById('det-direccion-envio').textContent = p.direccion_envio;
+                document.getElementById('det-ubicacion-envio').textContent = `${p.ciudad}, ${p.provincia}`;
+
+                const lista = document.getElementById('det-lista-items');
+                lista.innerHTML = '';
+                items.forEach(item => {
+                    const fila = `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <img src="../${item.producto_imagen}" class="w-10 h-10 object-cover rounded shadow-sm">
+                                <span class="font-medium text-fashion-black">${item.producto_nombre}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center font-semibold">${item.cantidad}</td>
+                        <td class="px-6 py-4 text-right">${parseFloat(item.precio_unitario).toFixed(2)} €</td>
+                        <td class="px-6 py-4 text-right font-bold text-fashion-black">${(item.cantidad * item.precio_unitario).toFixed(2)} €</td>
+                    </tr>
+                `;
+                    lista.innerHTML += fila;
+                });
+
+                document.getElementById('det-total-pedido').textContent = `${parseFloat(p.coste_total).toFixed(2)} €`;
+
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            } else {
+                alert(resultado.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('No se pudieron cargar los detalles del pedido.');
+        }
+    }
+
+    function cerrarModalDetallesPedido() {
+        const modal = document.getElementById('modal-detalles-pedido');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    // Cerrar al pulsar fuera del contenido
+    document.addEventListener('click', (e) => {
+        const modal = document.getElementById('modal-detalles-pedido');
+        if (e.target === modal) cerrarModalDetallesPedido();
+    });
+</script>
 
 <?php include 'Footer.html'; ?>
