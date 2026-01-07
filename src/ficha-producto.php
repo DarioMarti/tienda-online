@@ -23,7 +23,12 @@ if (!$producto) {
 }
 
 // Obtener tallas del producto
-$stmtTallas = $conn->prepare("SELECT talla, stock FROM producto_tallas WHERE producto_id = ?");
+$stmtTallas = $conn->prepare("
+    SELECT pt.id as variante_id, pt.stock, t.nombre as talla 
+    FROM producto_tallas pt 
+    JOIN tallas t ON pt.talla_id = t.id 
+    WHERE pt.producto_id = ?
+");
 $stmtTallas->execute([$id]);
 $tallas = $stmtTallas->fetchAll(PDO::FETCH_ASSOC);
 
@@ -92,6 +97,7 @@ include 'Cabecera.php';
                                     <?php foreach ($tallas as $t): ?>
                                         <button type="button"
                                             class="size-btn py-2.5 border border-gray-300 text-xs hover:border-black transition-all"
+                                            data-variante-id="<?php echo $t['variante_id']; ?>"
                                             data-talla="<?php echo htmlspecialchars($t['talla']); ?>">
                                             <?php echo htmlspecialchars($t['talla']); ?>
                                         </button>
@@ -138,13 +144,16 @@ include 'Cabecera.php';
 
                                         const productId = <?= $id ?>;
 
+                                        const variantId = this.dataset.varianteId;
+                                        const tallaNombre = this.dataset.talla;
+
                                         try {
                                             const response = await fetch('../modelos/carrito/agregar-carrito.php', {
                                                 method: 'POST',
                                                 headers: {
                                                     'Content-Type': 'application/x-www-form-urlencoded',
                                                 },
-                                                body: `producto_id=${productId}&talla=${encodeURIComponent(selectedSize)}&cantidad=1`
+                                                body: `producto_id=${productId}&variante_id=${variantId}&talla=${encodeURIComponent(tallaNombre)}&cantidad=1`
                                             });
 
                                             const result = await response.json();

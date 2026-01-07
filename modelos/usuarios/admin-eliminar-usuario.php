@@ -2,7 +2,7 @@
 require_once "../../config/conexion.php";
 ob_start();
 
-// Verificar rol de admin
+// COMPROBAR SI SE TIENE ACCESO
 restringirSoloAdminAPI();
 
 try {
@@ -13,7 +13,8 @@ try {
         throw new Exception("ID de usuario no proporcionado.");
     }
 
-    // Seguridad: No permitir auto-eliminación
+    // NO PERMMITE LA ELIMINACION DE SU PROPIO USUARIO
+    
     if ($id == $_SESSION['usuario']['id']) {
         throw new Exception("No puedes eliminar tu propia cuenta de administrador desde aquí.");
     }

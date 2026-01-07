@@ -65,15 +65,32 @@ try {
         throw new Exception("Debes introducir al menos una talla obligatoriamente.");
     }
 
-    $sqlTalla = "INSERT INTO producto_tallas (producto_id, talla, stock) VALUES (?, ?, ?)";
+    $sqlTalla = "INSERT INTO producto_tallas (producto_id, talla_id, stock) VALUES (?, ?, ?)";
     $stmtTalla = $conn->prepare($sqlTalla);
 
+    // Helper para obtener el ID de la talla por nombre
+    $stmtGetTallaId = $conn->prepare("SELECT id FROM tallas WHERE nombre = ?");
+    $stmtCreateTalla = $conn->prepare("INSERT INTO tallas (nombre) VALUES (?)");
+
     foreach ($tallas_stock as $item) {
-        $talla = trim($item['talla']);
-        $stockTalla = 0;
-        if (!empty($talla)) {
-            $stmtTalla->execute([$producto_id, $talla, $stockTalla]);
+        $tallaNombre = trim($item['talla']);
+        if (empty($tallaNombre))
+            continue;
+
+        // Buscar ID
+        $stmtGetTallaId->execute([$tallaNombre]);
+        $tallaRow = $stmtGetTallaId->fetch(PDO::FETCH_ASSOC);
+
+        if ($tallaRow) {
+            $tallaId = $tallaRow['id'];
+        } else {
+            // Si no existe, la creamos (o podrías lanzar error según prefieras)
+            $stmtCreateTalla->execute([$tallaNombre]);
+            $tallaId = $conn->lastInsertId();
         }
+
+        $stockTalla = intval($item['stock'] ?? 0);
+        $stmtTalla->execute([$producto_id, $tallaId, $stockTalla]);
     }
 
     $conn->commit();

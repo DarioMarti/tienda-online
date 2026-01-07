@@ -1,7 +1,8 @@
 <?php
 require("../../config/conexion.php");
 
-// Configurar cookie de sesión para todo el dominio
+// CONFIGURAR COOKIE PARA TODOS LOS DOMINIOS Y SE INICIA LA SESIÓN
+
 session_set_cookie_params(0, '/');
 session_start();
 
@@ -10,16 +11,13 @@ $conn = conectar();
 $emailUsuario = $_POST["email"] ?? "";
 $passUsuario = $_POST["pass"] ?? "";
 
-// Buscar usuario solo por email
+// BUSCAR USUARIO
 $consulta = $conn->prepare("SELECT * FROM usuarios WHERE email = :email LIMIT 1");
 $consulta->execute([":email" => $emailUsuario]);
-
-// Obtener el usuario
 $usuario = $consulta->fetch(PDO::FETCH_ASSOC);
 
-// Verificar si existe el usuario y la contraseña es correcta
+// VERIFICAR SI EXISTE EL USUARIO Y LA CONTRASEÑA ES CORRECTA
 if ($usuario && password_verify($passUsuario, $usuario["password"]) && $usuario["activo"] == 1) {
-    // Crear sesión con todos los datos necesarios
     $_SESSION["usuario"] = [
         "id" => $usuario["id"],
         "nombre" => $usuario["nombre"],
@@ -32,11 +30,9 @@ if ($usuario && password_verify($passUsuario, $usuario["password"]) && $usuario[
         "activo" => $usuario["activo"] ?? ""
     ];
 
-    // Redirigir a la página principal
     header("Location: ../../src/index.php");
     exit;
 } else {
-    // Login incorrecto
     echo "<p style='color:red; text-align:center; margin-top:50px;'>Email o contraseña incorrectos.</p>";
     echo "<p style='text-align:center;'><a href='../../src/index.php'>Volver al inicio</a></p>";
 }

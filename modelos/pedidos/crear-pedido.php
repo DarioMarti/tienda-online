@@ -1,9 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
-ob_start();
 
-// Verificación de seguridad
 restringirAccesoAPI();
 
 try {
@@ -11,7 +9,9 @@ try {
     $conn->beginTransaction();
 
     $usuario_email = !empty($_POST['usuario_email']) ? trim($_POST['usuario_email']) : null;
-    $coste_total = floatval($_POST['coste_total'] ?? 0);
+    $coste_enviado = floatval($_POST['coste_total'] ?? 0);
+    $totalCalculado = 0;
+
     $estado = $_POST['estado'] ?? 'pendiente';
     $nombre_destinatario = $_POST['nombre_destinatario'] ?? '';
     $direccion_envio = $_POST['direccion_envio'] ?? '';
@@ -28,7 +28,7 @@ try {
         throw new Exception("El pedido debe tener al menos un producto.");
     }
 
-    $usuario_Sid = null;
+    $usuario_id = null;
     if ($usuario_email) {
         $stmtUser = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
         $stmtUser->execute([$usuario_email]);
@@ -39,15 +39,16 @@ try {
         $usuario_id = $user['id'];
     }
 
-    // 1. Insertar Cabecera del Pedido
+    // INSERTAR LA CABECERA DEL PEDIDO
     $sql = "INSERT INTO pedidos (usuario_id, coste_total, estado, nombre_destinatario, direccion_envio, ciudad, provincia) 
             VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$usuario_id, $coste_total, $estado, $nombre_destinatario, $direccion_envio, $ciudad, $provincia]);
+    $stmt->execute([$usuario_id, $coste_enviado, $estado, $nombre_destinatario, $direccion_envio, $ciudad, $provincia]);
 
     $pedido_id = $conn->lastInsertId();
 
-    // 2. Insertar Detalles del Pedido y Actualizar Stock
+    // INSERTAR LOS DETALLES DEL PEDIDO
+
     $stmtItem = $conn->prepare("INSERT INTO detalles_pedido (pedido_id, producto_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?)");
     $stmtProducto = $conn->prepare("SELECT precio, stock, nombre FROM productos WHERE id = ? FOR UPDATE");
     $stmtActualizarStock = $conn->prepare("UPDATE productos SET stock = stock - ? WHERE id = ?");
@@ -69,8 +70,9 @@ try {
         }
 
         $precio_unitario = floatval($producto['precio']);
+        $totalCalculado += ($precio_unitario * $cantidad);
 
-        // INSERTAR LOS DETAsLLES DEL PEDIDO
+        // INSERTAR LOS DETALLES DEL PEDIDO
         $stmtItem->execute([$pedido_id, $prod_id, $cantidad, $precio_unitario]);
 
         // RESTAR EL STOCK SOLO SI EL PEDIDO NO NACE CANCELADO
@@ -78,6 +80,14 @@ try {
             $stmtActualizarStock->execute([$cantidad, $prod_id]);
         }
     }
+
+    // VERIFICAR SI EL PRECIO ENVIADO COINCIDE CON EL REAL
+    if (abs($totalCalculado - $coste_enviado) > 0.01) {
+        $stmtUpdateTotal = $conn->prepare("UPDATE pedidos SET coste_total = ? WHERE id = ?");
+        $stmtUpdateTotal->execute([$totalCalculado, $pedido_id]);
+    }
+
+
 
     $conn->commit();
 

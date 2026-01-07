@@ -8,16 +8,15 @@ include 'Cabecera.php';
 <main class="min-h-screen bg-fashion-gray flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-lg shadow-xl">
 
-        <!-- Encabezado -->
         <div class="text-center">
             <h2 class="font-editorial text-4xl italic text-fashion-black mb-2">Crear Cuenta</h2>
             <p class="text-sm text-gray-500 tracking-wide">Únete a la familia Aetheria</p>
         </div>
 
-        <!-- Formulario -->
+        <!-- FORMULARIO REGISTRO -->
         <form class="mt-8 space-y-6" action="../modelos/usuarios/agregar-usuario.php" method="POST">
 
-            <!-- Nombre de Usuario -->
+            <!-- NOMBRE DE USUARIO -->
             <div class="space-y-2">
                 <label for="username" class="text-xs uppercase tracking-widest font-semibold text-gray-700">
                     Nombre de Usuario
@@ -27,7 +26,7 @@ include 'Cabecera.php';
                     placeholder="Tu nombre de usuario">
             </div>
 
-            <!-- Email -->
+            <!-- EMAIL -->
             <div class="space-y-2">
                 <label for="email" class="text-xs uppercase tracking-widest font-semibold text-gray-700">
                     Email
@@ -37,7 +36,7 @@ include 'Cabecera.php';
                     placeholder="tu@email.com">
             </div>
 
-            <!-- Contraseña -->
+            <!-- CONTRASEÑA -->
             <div class="space-y-2">
                 <label for="password" class="text-xs uppercase tracking-widest font-semibold text-gray-700">
                     Contraseña
@@ -47,7 +46,7 @@ include 'Cabecera.php';
                     placeholder="••••••••">
             </div>
 
-            <!-- Términos y Condiciones -->
+            <!-- TÉRMINOS Y CONDICIONES -->
             <div class="flex items-start space-x-3 pt-2">
                 <input id="terms" name="terms" type="checkbox" required
                     class="mt-1 rounded border-gray-300 text-fashion-black focus:ring-fashion-black focus:ring-2">
@@ -60,7 +59,7 @@ include 'Cabecera.php';
                 </label>
             </div>
 
-            <!-- Botón de Registro -->
+            <!-- BOTÓN DE REGISTRO -->
             <div class="pt-4">
                 <button type="submit"
                     class="w-full bg-fashion-black text-white py-4 px-8 text-xs uppercase tracking-[0.25em] font-semibold hover:bg-fashion-accent transition-all duration-300 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
@@ -68,7 +67,7 @@ include 'Cabecera.php';
                 </button>
             </div>
 
-            <!-- Link a Login -->
+            <!-- LINK A LOGIN -->
             <div class="text-center pt-4 border-t border-gray-200">
                 <p class="text-sm text-gray-600">
                     ¿Ya tienes cuenta?

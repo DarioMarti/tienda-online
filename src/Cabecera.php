@@ -9,16 +9,16 @@ require_once __DIR__ . '/../config/seguridad.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $titulo ?? "Aetheria" ?></title>
 
-    <!-- Iconos Phosphor -->
+    <!-- ICONOS -->
     <script src="https://unpkg.com/phosphor-icons"></script>
 
-    <!-- Estilos Personalizados -->
+    <!-- ESTILOS PERSONALIZADOS -->
     <link rel="stylesheet" href="../styles/input.css">
 
-    <!-- Tailwind CSS -->
+    <!-- TAILWIND CSS -->
     <link rel="stylesheet" href="../styles/output.css">
 
-    <!-- Favicon -->
+    <!-- FAVICON -->
     <link rel="icon" href="../img/home/Favicon_Aetherea.ico" type="image/x-icon">
 
 </head>
@@ -139,7 +139,7 @@ require_once __DIR__ . '/../config/seguridad.php';
     <div id="capa-superpuesta"
         class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[45] hidden transition-opacity duration-300"></div>
 
-    <!-- CART SIDEBAR -->
+    <!-- BARRA LATERAL DEL CARRITO -->
     <div id="sidebar-carrito" class="sidebar-lateral sidebar-cerrado z-[50]">
         <div class="flex justify-between items-center mb-10">
             <h2 class="editorial-font text-3xl italic">Tu Cesta</h2>
@@ -148,13 +148,12 @@ require_once __DIR__ . '/../config/seguridad.php';
             </button>
         </div>
 
-        <!-- Items Container -->
+        <!-- CONTENEDOR DE ITEMS DEL CARRITO -->
         <div id="contenedor-items-carrito" class="flex-1 overflow-y-auto space-y-6 mb-8 pr-2 custom-scrollbar">
-            <!-- Los items se cargarán aquí dinámicamente -->
             <p class="text-sm text-gray-500 text-center py-10">Cargando productos...</p>
         </div>
 
-        <!-- Footer del Carrito -->
+        <!-- FOOTER DEL CARRITO -->
         <div class="border-t border-gray-100 pt-8 mt-auto">
             <div class="flex justify-between items-center mb-6">
                 <span class="text-xs uppercase tracking-[0.2em] font-bold text-gray-400">Subtotal</span>
@@ -175,11 +174,9 @@ require_once __DIR__ . '/../config/seguridad.php';
         </div>
     </div>
 
-    <!-- LOGIN SIDEBAR -->
+    <!-- LOGIN BARRA LATERAL -->
     <div id="sidebar-login" class="sidebar-lateral sidebar-cerrado">
 
-
-        <!-- Cabecera del Sidebar -->
         <div class="flex justify-between items-center mb-10">
             <h2 class="editorial-font text-3xl italic">Iniciar Sesión</h2>
             <button id="cerrar-login" class="text-gray-400 hover:text-fashion-black transition-colors">
@@ -187,7 +184,7 @@ require_once __DIR__ . '/../config/seguridad.php';
             </button>
         </div>
 
-        <!-- Formulario -->
+        <!-- FORMULARIO LOGIN -->
         <form class="space-y-6 flex-1" action="../modelos/usuarios/sesion.php" method="POST">
             <div class="space-y-2">
                 <label class="text-xs uppercase tracking-widest font-semibold text-gray-500">Email</label>

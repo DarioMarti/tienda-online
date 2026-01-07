@@ -2,7 +2,7 @@
 require_once "../../config/conexion.php";
 ob_start();
 
-// Verificación de seguridad
+// COMPROBAR SI SE TIENE ACCESO
 restringirAccesoAPI();
 
 try {

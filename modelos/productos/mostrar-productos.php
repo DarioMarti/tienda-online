@@ -23,7 +23,7 @@ function mostrarProductos($orden = '', $tallas = [], $categoria = '', $precio = 
     if (!empty($tallas)) {
         $placeholders = implode(',', array_fill(0, count($tallas), '?'));
         // Usamos una subconsulta porque las tallas están en otra tabla
-        $where[] = "p.id IN (SELECT producto_id FROM producto_tallas WHERE talla IN ($placeholders))";
+        $where[] = "p.id IN (SELECT pt.producto_id FROM producto_tallas pt JOIN tallas t ON pt.talla_id = t.id WHERE t.nombre IN ($placeholders))";
         $params = array_merge($params, $tallas);
     }
 
@@ -65,10 +65,11 @@ function mostrarProductos($orden = '', $tallas = [], $categoria = '', $precio = 
             break;
     }
 
-    $sql = "SELECT p.*, GROUP_CONCAT(pt.talla ORDER BY pt.talla) as tallas_disponibles 
+    $sql = "SELECT p.*, GROUP_CONCAT(t.nombre ORDER BY t.nombre) as tallas_disponibles 
             FROM productos p 
             LEFT JOIN categorias c ON p.categoria_id = c.id 
             LEFT JOIN producto_tallas pt ON p.id = pt.producto_id
+            LEFT JOIN tallas t ON pt.talla_id = t.id
             $whereSQL 
             GROUP BY p.id
             $ordenSQL";

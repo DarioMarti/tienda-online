@@ -59,7 +59,7 @@ include 'Cabecera.php';
                         <!-- Nombre -->
                         <div class="space-y-2">
                             <label class="text-xs uppercase tracking-widest font-semibold text-gray-500">Nombre</label>
-                            <div
+                            <div id="display-nombre"
                                 class="w-full px-4 py-3 bg-fashion-gray border border-gray-200 rounded-lg text-fashion-black">
                                 <?= htmlspecialchars($usuario['nombre']) ?>
                             </div>
@@ -69,7 +69,7 @@ include 'Cabecera.php';
                         <div class="space-y-2">
                             <label
                                 class="text-xs uppercase tracking-widest font-semibold text-gray-500">Apellidos</label>
-                            <div
+                            <div id="display-apellidos"
                                 class="w-full px-4 py-3 bg-fashion-gray border border-gray-400 rounded-lg text-fashion-black">
                                 <?= htmlspecialchars($usuario['apellidos']) ?>
                             </div>
@@ -88,7 +88,7 @@ include 'Cabecera.php';
                         <div class="space-y-2">
                             <label
                                 class="text-xs uppercase tracking-widest font-semibold text-gray-500">Teléfono</label>
-                            <div
+                            <div id="display-telefono"
                                 class="w-full px-4 py-3 bg-fashion-gray border border-gray-200 rounded-lg text-fashion-black">
                                 <?= htmlspecialchars($usuario['telefono'] ?: 'No especificado') ?>
                             </div>
@@ -98,7 +98,7 @@ include 'Cabecera.php';
                         <div class="space-y-2 md:col-span-2">
                             <label
                                 class="text-xs uppercase tracking-widest font-semibold text-gray-500">Dirección</label>
-                            <div
+                            <div id="display-direccion"
                                 class="w-full px-4 py-3 bg-fashion-gray border border-gray-200 rounded-lg text-fashion-black min-h-[80px]">
                                 <?= htmlspecialchars($usuario['direccion'] ?: 'No especificada') ?>
                             </div>
@@ -433,10 +433,7 @@ include 'Cabecera.php';
 </div>
 
 
-<script>
-    // Pasar datos de pedidos a JS
-    const userOrders = <?php echo json_encode($pedidos); ?>;
-</script>
+
 <script src="../animaciones/perfil-Usuario.js"></script>
 <?php
 include 'Footer.html';

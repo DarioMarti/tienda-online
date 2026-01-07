@@ -7,22 +7,19 @@ require_once __DIR__ . '/../config/conexion.php';
 
 header('Content-Type: application/json');
 
-// Verificar que el usuario esté autenticado
 if (!isset($_SESSION['usuario'])) {
     http_response_code(401);
-    echo json_encode(['error' => 'Debes iniciar sesión para realizar un pago']);
+    echo json_encode(['error' => 'Debes iniciar sesiï¿½n para realizar un pago']);
     exit;
 }
 
 try {
-    // Configurar Stripe con la clave secreta
     \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
 
     $usuario_id = $_SESSION['usuario']['id'];
 
-    // Obtener productos del carrito
     $stmt = $pdo->prepare("
-        SELECT c.id, c.cantidad, p.nombre, p.precio, p.stock, t.talla
+        SELECT c.id, c.cantidad, p.nombre, p.precio, p.stock, t.nombre as talla
         FROM carrito c
         JOIN productos p ON c.producto_id = p.id
         LEFT JOIN tallas t ON c.talla_id = t.id
@@ -33,11 +30,11 @@ try {
 
     if (empty($items_carrito)) {
         http_response_code(400);
-        echo json_encode(['error' => 'El carrito está vacío']);
+        echo json_encode(['error' => 'El carrito estï¿½ vacï¿½o']);
         exit;
     }
 
-    // Verificar stock disponible
+    // VERIFICA SI HAY STOCK DISPONIBLE
     foreach ($items_carrito as $item) {
         if ($item['cantidad'] > $item['stock']) {
             http_response_code(400);
@@ -48,7 +45,7 @@ try {
         }
     }
 
-    // Preparar line_items para Stripe
+    // PREPARA LOS ITEMS PARA STRIPE
     $line_items = [];
     foreach ($items_carrito as $item) {
         $nombre_producto = $item['nombre'];
@@ -62,13 +59,13 @@ try {
                 'product_data' => [
                     'name' => $nombre_producto,
                 ],
-                'unit_amount' => (int)($item['precio'] * 100), // Stripe usa centavos
+                'unit_amount' => (int) ($item['precio'] * 100), // Stripe usa centavos
             ],
             'quantity' => $item['cantidad'],
         ];
     }
 
-    // Crear sesión de Stripe Checkout
+    // CREA LA SESION DE STRIPE
     $checkout_session = \Stripe\Checkout\Session::create([
         'payment_method_types' => ['card'],
         'line_items' => $line_items,
@@ -85,7 +82,7 @@ try {
         ],
     ]);
 
-    // Devolver el ID de sesión
+    // DEVUELVE EL ID DE LA SESION
     echo json_encode(['id' => $checkout_session->id]);
 
 } catch (\Stripe\Exception\ApiErrorException $e) {
@@ -96,4 +93,3 @@ try {
     echo json_encode(['error' => 'Error del servidor: ' . $e->getMessage()]);
 }
 ?>
-

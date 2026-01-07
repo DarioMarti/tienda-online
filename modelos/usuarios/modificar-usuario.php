@@ -23,7 +23,9 @@ try {
     }
 
     // ACTUALIZAR BASE DE DATOS
-    $sql = "UPDATE usuarios SET nombre = :nombre, apellidos = :apellidos, telefono = :telefono, direccion = :direccion WHERE email = :email";
+    $sql = "UPDATE usuarios
+    SET nombre = :nombre, apellidos = :apellidos, telefono = :telefono, direccion = :direccion
+    WHERE email = :email";
 
     $statement = $conn->prepare($sql);
     $resultado = $statement->execute([
@@ -37,6 +39,7 @@ try {
     $filasAfectadas = $statement->rowCount();
 
     // ACTUALIZAR SESIÓN
+    
     $_SESSION["usuario"]["nombre"] = $nombre;
     $_SESSION["usuario"]["apellidos"] = $apellidos;
     $_SESSION["usuario"]["telefono"] = $telefono;

@@ -25,8 +25,6 @@ foreach ($pedidos as $pedido) {
         $totalVentas += $pedido['coste_total'];
     }
 }
-?>
-<?php
 include 'Cabecera.php';
 ?>
 
@@ -556,9 +554,38 @@ include 'Cabecera.php';
                     <!-- Gráfico de ventas (Placeholder) -->
                     <div class="bg-white p-6 rounded-lg shadow-lg">
                         <h3 class="text-lg font-bold mb-4">Ingresos Mensuales</h3>
-                        <div class="h-64 bg-gray-50 flex items-center justify-center text-gray-400">
-                            Gráfico de Ingresos
-                        </div>
+                        <ul class="space-y-3">
+                            <?php if (empty($ingresosMensuales)): ?>
+                                <li class="text-gray-400 text-sm">No hay ingresos registrados.</li>
+                            <?php else: ?>
+                                <?php
+                                $meses = [
+                                    '01' => 'Enero',
+                                    '02' => 'Febrero',
+                                    '03' => 'Marzo',
+                                    '04' => 'Abril',
+                                    '05' => 'Mayo',
+                                    '06' => 'Junio',
+                                    '07' => 'Julio',
+                                    '08' => 'Agosto',
+                                    '09' => 'Septiembre',
+                                    '10' => 'Octubre',
+                                    '11' => 'Noviembre',
+                                    '12' => 'Diciembre'
+                                ];
+                                foreach ($ingresosMensuales as $ingreso): ?>
+                                    <li class="flex justify-between items-center border-b border-gray-100 pb-2">
+                                        <span>
+                                            <?php
+                                            $fechaObj = DateTime::createFromFormat('Y-m', $ingreso['mes']);
+                                            echo $meses[$fechaObj->format('m')] . ' ' . $fechaObj->format('Y');
+                                            ?>
+                                        </span>
+                                        <span class="font-bold"><?= number_format($ingreso['total'], 2) ?> €</span>
+                                    </li>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </ul>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow-lg">
                         <h3 class="text-lg font-bold mb-4">Productos Más Vendidos</h3>

@@ -4,8 +4,7 @@ require_once dirname(__DIR__, 2) . "/config/conexion.php";
 function obtenerIngresosMensuales()
 {
     $conn = conectar();
-    // Agrupar por Mes-Año
-    // Formato fecha: 2024-01
+
     $sql = "SELECT DATE_FORMAT(fecha, '%Y-%m') as mes, SUM(coste_total) as total 
             FROM pedidos 
             WHERE estado != 'cancelado' 
@@ -20,7 +19,6 @@ function obtenerIngresosMensuales()
 function obtenerProductosMasVendidos()
 {
     $conn = conectar();
-    // Sumar cantidad total vendida por producto
     $sql = "SELECT p.nombre, p.imagen, SUM(dp.cantidad) as total_vendido 
             FROM detalles_pedido dp
             JOIN pedidos ped ON dp.pedido_id = ped.id

@@ -1,18 +1,21 @@
-// Gestión de Tabs
+
+
+
+// GESTIÓN DE LAS PESTAÑAS
 function cambiarPestaña(idPestaña, actualizarUrl = true) {
-    // Ocultar todas las secciones
+
+    // OCULTAR TODAS LAS SECCIONES
     document.querySelectorAll('.tab-content').forEach(el => {
         el.classList.add('hidden');
         el.classList.remove('block');
     });
 
-    // Mostrar la sección seleccionada
+    // MOSTRAR LA SECCIÓN SELECCIONADA
     const seccionSeleccionada = document.getElementById(`seccion-${idPestaña}`);
     if (seccionSeleccionada) {
         seccionSeleccionada.classList.remove('hidden');
         seccionSeleccionada.classList.add('block');
 
-        // Persistencia
         localStorage.setItem('activeAdminTab', idPestaña);
 
         if (actualizarUrl) {
@@ -22,7 +25,7 @@ function cambiarPestaña(idPestaña, actualizarUrl = true) {
         }
     }
 
-    // Actualizar estado activo en el sidebar
+    // ACTUALIZAR ESTADO ACTIVO EN EL SIDEBAR
     document.querySelectorAll('.nav-item').forEach(el => {
         el.classList.remove('bg-fashion-gray', 'text-fashion-black');
         el.classList.add('text-gray-500', 'hover:bg-fashion-gray', 'hover:text-fashion-black');
@@ -36,7 +39,7 @@ function cambiarPestaña(idPestaña, actualizarUrl = true) {
 }
 
 
-// Gestión del Modal de Usuarios
+// GESTIONAR EL MODAL DE USUARIOS
 const modalUsuario = document.getElementById('modal-usuario');
 const formularioUsuario = document.getElementById('formulario-usuario');
 const tituloModal = document.getElementById('titulo-modal');
@@ -48,19 +51,19 @@ const selectorRol = document.getElementById('rol');
 
 function abrirModalUsuario() {
     modalUsuario.classList.remove('hidden');
-    document.body.style.overflow = 'hidden'; // Prevenir scroll
+    document.body.style.overflow = 'hidden'; // PREVENIR SCROLL
 
-    // Resetear formulario para "Crear"
+    // RESETEAR FORMULARIO PARA "CREAR"
     formularioUsuario.reset();
     tituloModal.textContent = 'Nuevo Usuario';
     accionFormulario.value = 'create';
     inputIdUsuario.value = '';
-    grupoContraseña.style.display = 'block'; // Mostrar campo contraseña
+    grupoContraseña.style.display = 'block'; // MOSTRAR CAMPO CONTRASEÑA
     pistaContraseña.style.display = 'none'; // Ocultar pista de "dejar en blanco"
 
-    // Habilitar selector de rol por defecto
+    // HABILITAR SELECTOR DE ROL POR DEFECTO
     selectorRol.disabled = false;
-    // Eliminar input hidden de rol si existe
+    // ELIMINAR INPUT HIDDEN DE ROL SI EXISTE
     const rolOculto = formularioUsuario.querySelector('input[name="rol"][type="hidden"]');
     if (rolOculto) rolOculto.remove();
 }
@@ -77,19 +80,19 @@ function editarUsuario(usuario) {
     accionFormulario.value = 'update';
     inputIdUsuario.value = usuario.id;
 
-    // Rellenar datos
+    // RELLENAR DATOS
     document.getElementById('nombre').value = usuario.nombre;
     document.getElementById('apellidos').value = usuario.apellidos;
     document.getElementById('email').value = usuario.email;
     document.getElementById('rol').value = usuario.rol;
     document.getElementById('activo').value = usuario.activo;
 
-    // Ajustes para edición
+    // AJUSTES PARA EDICIÓN
     pistaContraseña.style.display = 'block';
 
-    // Protección: Si el usuario intenta editarse a sí mismo
+    // PROTECCIÓN: SI EL USUARIO INTENTA EDITARSE A SÍ MISMO
     if (usuario.id == idUsuarioActual) {
-        selectorRol.disabled = true; // Deshabilitar cambio de rol
+        selectorRol.disabled = true; // DESHABILITAR CAMBIO DE ROL
 
         // Añadir input hidden para enviar el valor del rol (ya que disabled no se envía)
         let rolOculto = formularioUsuario.querySelector('input[name="rol"][type="hidden"]');
@@ -107,18 +110,18 @@ function editarUsuario(usuario) {
     }
 }
 
-// Cerrar modal al hacer clic fuera
+// CERRAR MODAL AL HACER CLIC FUERA
 modalUsuario.addEventListener('click', (e) => {
     if (e.target === modalUsuario) {
         cerrarModalUsuario();
     }
 });
 
-// Manejar envíos de formularios con AJAX (Delegación de eventos para mayor robustez)
+// MANEJAR ENVÍOS DE FORMULARIOS CON AJAX (DELEGACIÓN DE EVENTOS PARA MAYOR ROBUSTEZ)
 document.addEventListener('submit', async (e) => {
     const form = e.target;
 
-    // Lista de formularios que manejamos por AJAX
+    // LISTA DE FORMULARIOS QUE MANEJAMOS POR AJAX
     const formulariosAjax = ['formulario-usuario', 'formulario-producto', 'formulario-categoria', 'formulario-pedido'];
 
     if (formulariosAjax.includes(form.id)) {
@@ -133,12 +136,11 @@ document.addEventListener('submit', async (e) => {
         console.log(`[AJAX] Enviando ${form.id}...`);
         const formData = new FormData(form);
 
-        // Debug: Log de campos enviados
         for (let [key, value] of formData.entries()) {
             console.log(`[AJAX Payload] ${key}:`, value instanceof File ? `Archivo: ${value.name}` : value);
         }
 
-        // Lógica específica para productos: Recoger tallas
+        // LÓGICA ESPECÍFICA PARA PRODUCTOS: RECOGER TALLAS
         if (form.id === 'formulario-producto') {
             const tallas = [];
             const filas = form.querySelectorAll('.size-row');
@@ -230,7 +232,7 @@ document.addEventListener('submit', async (e) => {
     }
 });
 
-// Gestión del Modal de Eliminación
+// GESTIONAR EL MODAL DE ELIMINACIÓN
 const modalEliminarAdmin = document.getElementById('modal-eliminacion');
 const mensajeEliminacion = document.getElementById('mensaje-eliminacion');
 let urlObjetivoEliminacion = '';
@@ -245,13 +247,13 @@ function abrirModalEliminar(url, mensaje, textoBtn = 'Eliminar', colorBtn = 'bg-
     if (botonConfirmar) {
         botonConfirmar.textContent = textoBtn;
 
-        // Limpiar todas las clases de color posibles (incluyendo las de Tailwind estándar y personalizadas)
+        // LIMPIAR TODAS LAS CLASES DE COLOR POSIBLES (INCLUYENDO LAS DE TAILWIND ESTANDAR Y PERSONALIZADAS)
         botonConfirmar.className = botonConfirmar.className.replace(/\bbg-\S+/g, '').replace(/\bhover:bg-\S+/g, '');
 
-        // Añadir las clases base necesarias (que perdimos con el replace anterior si estaban ahí)
+        // AÑADIR LAS CLASES BASE NECESARIAS (QUE PERDIMOS CON EL REPLACE ANTERIOR SI ESTABAN AHÍ)
         botonConfirmar.classList.add('flex-1', 'text-white', 'py-2', 'px-4', 'text-[10px]', 'uppercase', 'tracking-widest', 'font-semibold', 'transition-colors', 'rounded');
 
-        // Aplicar el color específico
+        // APLICAR EL COLOR ESPECÍFICO
         if (colorBtn === 'bg-green-600' || colorBtn === 'bg-emerald-600') {
             botonConfirmar.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
         } else if (colorBtn === 'bg-red-600') {
@@ -313,8 +315,7 @@ function activarCategoria(id, nombre) {
     abrirModalEliminar(url, msg, 'Reactivar', 'bg-emerald-600');
 }
 
-// Placeholder functions for new buttons
-// Gestión del Modal de Pedidos
+// GESTIÓN DEL MODAL DE PEDIDOS
 const modalPedido = document.getElementById('modal-pedido');
 const formularioPedido = document.getElementById('formulario-pedido');
 const tituloModalPedido = document.getElementById('titulo-modal-pedido');
@@ -324,17 +325,17 @@ function abrirModalPedido() {
     modalPedido.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
-    // Resetear formulario
+    // RESETEAR FORMULARIO
     formularioPedido.reset();
     tituloModalPedido.textContent = 'Nuevo Pedido';
     formularioPedido.action = '../modelos/pedidos/crear-pedido.php';
     inputIdPedido.value = '';
 
-    // Limpiar productos y añadir una fila vacía
+    // LIMPIAR PRODUCTOS Y AÑADIR UNA FILA VACÍA
     document.getElementById('constructor-items-pedido').innerHTML = '';
     añadirFilaProducto();
     document.getElementById('coste-total-pedido').value = '0.00';
-    window.editingOrderOriginalItems = null; // Limpiar para nuevo pedido
+    window.editingOrderOriginalItems = null; // LIMPIAR PARA NUEVO PEDIDO
     validarStock();
 }
 
@@ -362,15 +363,14 @@ function editarPedido(pedido) {
     document.getElementById('provincia-pedido').value = pedido.provincia;
     document.getElementById('estado-pedido').value = pedido.estado;
 
-    // Cargar productos del pedido
+    // CARGAR PRODUCTOS DEL PEDIDO
     const contenedorItems = document.getElementById('constructor-items-pedido');
-    contenedorItems.innerHTML = ''; // Limpiar
+    contenedorItems.innerHTML = ''; // LIMPIAR
 
     fetch(`../modelos/pedidos/obtener-detalle-pedido.php?id=${pedido.id}`)
         .then(res => res.json())
         .then(resultado => {
             if (resultado.success) {
-                // Para validación en edición: Guardar stock original localmente para este modal
                 window.editingOrderOriginalItems = resultado.items;
 
                 resultado.items.forEach(item => {
@@ -391,7 +391,7 @@ function eliminarPedido(id) {
 
 
 
-// Gestión del Modal de Detalles de Pedido
+// GESTIÓN DEL MODAL DE DETALLES DE PEDIDO
 const modalDetallesPedido = document.getElementById('modal-detalles-pedido');
 
 async function verDetallesPedido(id) {
@@ -405,15 +405,15 @@ async function verDetallesPedido(id) {
             const p = resultado.pedido;
             const items = resultado.items;
 
-            // Rellenar cabecera
+            // RELLENAR CABECERA
             document.getElementById('det-id-pedido').textContent = `#${p.id}`;
             document.getElementById('det-fecha-pedido').textContent = new Date(p.fecha).toLocaleString();
 
-            // Rellenar cliente
+            // RELLENAR CLIENTE
             document.getElementById('det-nombre-cliente').textContent = p.nombre_destinatario;
             document.getElementById('det-email-cliente').textContent = p.usuario_email || 'Venta Anónima';
 
-            // Badge de estado
+            // BADGE DE ESTADO
             const badge = document.getElementById('det-badge-estado');
             badge.textContent = p.estado.toUpperCase();
             badge.className = 'px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase ';
@@ -426,11 +426,11 @@ async function verDetallesPedido(id) {
             };
             badge.className += (classes[p.estado] || 'bg-gray-100 text-gray-700');
 
-            // Dirección
+            // DIRECCIÓN
             document.getElementById('det-direccion-envio').textContent = p.direccion_envio;
             document.getElementById('det-ubicacion-envio').textContent = `${p.ciudad}, ${p.provincia}`;
 
-            // Items
+            // ITEMS
             const listaDetallesItems = document.getElementById('det-lista-items');
             listaDetallesItems.innerHTML = '';
             items.forEach(item => {
@@ -450,10 +450,10 @@ async function verDetallesPedido(id) {
                 `;
             });
 
-            // Total
+            // TOTAL
             document.getElementById('det-total-pedido').textContent = `${parseFloat(p.coste_total).toFixed(2)} €`;
 
-            // Mostrar modal
+            // MOSTRAR MODAL
             modalDetallesPedido.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         } else {
@@ -473,7 +473,7 @@ function cerrarModalDetallesPedido() {
 }
 
 
-// Cerrar modal al hacer clic fuera
+// CERRAR MODAL AL HACER CLIC FUERA
 if (modalPedido) {
     modalPedido.addEventListener('click', (e) => {
         if (e.target === modalPedido) cerrarModalPedido();
@@ -488,7 +488,7 @@ if (modalDetallesPedido) {
 
 
 
-// Lógica de Selección de Productos en Pedidos
+// LÓGICA DE SELECCIÓN DE PRODUCTOS EN PEDIDOS
 function añadirFilaProducto(itemData = null) {
     const contenedor = document.getElementById('constructor-items-pedido');
     if (!contenedor) return;
@@ -537,7 +537,7 @@ function añadirFilaProducto(itemData = null) {
     `;
 
     contenedor.appendChild(tr);
-    // Inicializar subtotal para esta fila
+    // INICIALIZAR SUBTOTAL PARA ESTA FILA
     const select = tr.querySelector('select');
     actualizarSubtotalFila(select);
 }
@@ -676,7 +676,7 @@ function calcularTotalPedido() {
 }
 
 
-// Gestión del Modal de Productos
+// GESTIÓN DEL MODAL DE PRODUCTOS
 const modalProducto = document.getElementById('modal-producto');
 const formularioProducto = document.getElementById('formulario-producto');
 const tituloModalProducto = document.getElementById('titulo-modal-producto');
@@ -692,7 +692,7 @@ function abrirModalProducto() {
     modalProducto.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
-    // Resetear formulario
+    // RESETEAR FORMULARIO
     formularioProducto.reset();
     tituloModalProducto.textContent = 'Nuevo Producto';
     formularioProducto.setAttribute('action', '../modelos/productos/agregar-producto.php');
@@ -705,11 +705,11 @@ function abrirModalProducto() {
     placeholderSubir.classList.remove('hidden');
     capaCambiarImagen.classList.add('hidden');
 
-    // Inicializar tallas
+    // INICIALIZAR TALLAS
     const contenedorTallas = document.getElementById('contenedor-tallas');
     if (contenedorTallas) {
-        contenedorTallas.innerHTML = ''; // Limpiar contenedor
-        // Pequeño timeout para asegurar que el DOM está listo si hay lag
+        contenedorTallas.innerHTML = ''; // LIMPIAR CONTENEDOR
+        // PEQUEÑO TIMEOUT PARAASEGURAR QUE EL DOM ESTÁ LISTO SI HAY LAG
         setTimeout(() => {
             if (typeof añadirFilaTalla === 'function') {
                 añadirFilaTalla();
@@ -721,35 +721,15 @@ function abrirModalProducto() {
 }
 
 
-// ==========================================
-// Gestión de Tallas (Robustez Total)
-// ==========================================
 
-// Inicialización única del datalist
-document.addEventListener('DOMContentLoaded', () => {
-    if (!document.getElementById('size-suggestions')) {
-        const datalist = document.createElement('datalist');
-        datalist.id = 'size-suggestions';
-        const suggestions = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', 'Talla Única'];
-        suggestions.forEach(s => {
-            const option = document.createElement('option');
-            option.value = s;
-            datalist.appendChild(option);
-        });
-        document.body.appendChild(datalist);
-    }
-});
 
-// Delegación de Eventos Global a nivel de Documento
-// Esto asegura que funcione sin importar cuándo o cómo se carguen los elementos
+// DELEGACIÓN DE EVENTOS GLOBAL A NIVEL DE DOCUMENTO
 document.addEventListener('click', (e) => {
-    // Debug info
     console.log('Click detected on:', e.target);
 
-    // 1. Botón Añadir Talla
+    //AÑADIR TALLA
     const botónAñadirTalla = e.target.closest('#boton-añadir-talla');
     if (botónAñadirTalla) {
-        // alert("DEBUG: Click detectado en botón!");
         console.log('Botón Añadir Talla clickeado');
         e.preventDefault();
         e.stopPropagation(); // Evitar propagación
@@ -757,7 +737,7 @@ document.addEventListener('click', (e) => {
         return;
     }
 
-    // 2. Botón Eliminar Talla
+    //ELIMINAR TALLA
     const botonEliminarTalla = e.target.closest('.delete-size-btn');
     if (botonEliminarTalla) {
         e.preventDefault();
@@ -767,9 +747,8 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Función para añadir fila
+// AÑADIR FILA
 function añadirFilaTalla(talla = '') {
-    // ALERT DEBUG 1: Función llamada
     console.log("añadirFilaTalla called");
 
     const contenedor = document.getElementById('contenedor-tallas');
@@ -779,13 +758,7 @@ function añadirFilaTalla(talla = '') {
     }
 
     const div = document.createElement('div');
-    // Forzamos visibilidad con fondo rojo temporal para debug -> Volvemos a limpio
     div.className = 'flex gap-4 items-center size-row mb-2 relative';
-    /*
-    div.style.backgroundColor = '#ffecec';
-    div.style.border = '1px solid red';
-    div.style.padding = '10px';
-    */
 
     div.innerHTML = `
         <div class="relative flex-1">
@@ -815,8 +788,7 @@ function añadirFilaTalla(talla = '') {
 
 
 
-// Exponer explícitamente a window para debugging y acceso global garantizado
-window.añadirFilaTalla = añadirFilaTalla;
+
 
 
 function cerrarModalProducto() {
@@ -824,7 +796,7 @@ function cerrarModalProducto() {
     document.body.style.overflow = 'auto';
 }
 
-// Drag & Drop Logic
+// DRAG & DROP LOGIC
 if (zonaDrop) {
     zonaDrop.addEventListener('click', () => inputArchivo.click());
 
@@ -850,16 +822,14 @@ if (zonaDrop) {
 }
 
 function previsualizarImagen(input) {
-    console.log('previsualizarImagen called', input);
-    const previsualizacionImagen = document.getElementById('image-preview');
-    const placeholderSubir = document.getElementById('upload-placeholder');
-    const capaCambiarImagen = document.getElementById('change-image-overlay');
+    const previsualizacionImagen = document.getElementById('previsualizacion-imagen');
+    const placeholderSubir = document.getElementById('placeholder-subida');
+    const capaCambiarImagen = document.getElementById('capa-cambio-imagen');
 
     if (input.files && input.files[0]) {
         const lector = new FileReader();
 
         lector.onload = function (e) {
-            console.log('Image loaded', e.target.result);
             previsualizacionImagen.src = e.target.result;
             previsualizacionImagen.classList.remove('hidden');
             placeholderSubir.classList.add('hidden');
@@ -870,7 +840,7 @@ function previsualizarImagen(input) {
     }
 }
 
-// Cerrar modal de producto al hacer clic fuera
+// CERRAR MODAL DE PRODUCTO AL HACER CLIC FUERA
 if (modalProducto) {
     modalProducto.addEventListener('click', (e) => {
         if (e.target === modalProducto) {
@@ -879,18 +849,15 @@ if (modalProducto) {
     });
 }
 
-// (El manejo de envío AJAX ahora está centralizado arriba con delegación de eventos)
+// MANEJO DE ENVÍO AJAX
 
-// Función para ajustar valores numéricos (Precio/Stock)
+// AJUSTAR VALOR
 function ajustarValor(idInput, paso) {
     const input = document.getElementById(idInput);
     let val = parseFloat(input.value) || 0;
     val += paso;
-
-    // Validar mínimos
     if (val < 0) val = 0;
 
-    // Formato para precio (2 decimales) vs stock (entero)
     if (paso % 1 !== 0) {
         input.value = val.toFixed(2);
     } else {
@@ -902,7 +869,7 @@ function editarProducto(producto) {
     modalProducto.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
-    // Rellenar formulario
+    // RELLENAR FORMULARIO
     tituloModalProducto.textContent = 'Modificar Producto';
     formularioProducto.setAttribute('action', '../modelos/productos/modificar-producto.php');
     accionFormularioProducto.value = 'update';
@@ -915,7 +882,7 @@ function editarProducto(producto) {
     document.getElementById('id-categoria-producto').value = producto.categoria_id;
     document.getElementById('descripcion-producto').value = producto.descripcion;
 
-    // Cargar imagen en preview
+    // CARGAR IMAGEN EN PREVIEW
     if (producto.imagen) {
         previsualizacionImagen.src = '../' + producto.imagen;
         previsualizacionImagen.classList.remove('hidden');
@@ -923,12 +890,12 @@ function editarProducto(producto) {
         capaCambiarImagen.classList.remove('hidden');
     }
 
-    // Gestionar tallas
+    // GESTIONAR TALLAS
     const contenedorTallas = document.getElementById('contenedor-tallas');
     if (contenedorTallas) {
         contenedorTallas.innerHTML = '';
 
-        // Fetch para obtener tallas del producto
+        // FETCH PARA OBTENER TALLAS DEL PRODUCTO
         fetch(`../modelos/productos/obtener-tallas-producto.php?id=${producto.id}`)
             .then(res => res.json())
             .then(data => {
@@ -948,13 +915,9 @@ function editarProducto(producto) {
     }
 }
 
-function eliminarProductoDefinitivo(id, nombre) {
-    const url = `../modelos/productos/eliminar-producto.php?id=${id}`;
-    const msg = `¿Deseas eliminar el producto "${nombre}"? Esta acción no se puede deshacer.`;
-    abrirModalEliminar(url, msg);
-}
 
-// Gestión del Modal de Categorías
+
+// GESTIÓN DEL MODAL DE CATEGORÍAS
 const modalCategoria = document.getElementById('modal-categoria');
 const formularioCategoria = document.getElementById('formulario-categoria');
 const tituloModalCategoria = document.getElementById('titulo-modal-categoria');
@@ -965,10 +928,10 @@ function abrirModalCategoria() {
     modalCategoria.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
-    // Resetear formulario
+    // RESETEAR FORMULARIO
     formularioCategoria.reset();
     tituloModalCategoria.textContent = 'Nueva Categoría';
-    // Set Action to Create
+    // SET ACTION TO CREATE
     formularioCategoria.action = '../modelos/categorias/crear-categoria.php';
 
     inputIdCategoria.value = '';
@@ -982,24 +945,20 @@ function cerrarModalCategoria() {
 function editarCategoria(categoria) {
     abrirModalCategoria();
 
-    // Cambiar título y acción
+    // CAMBIAR TÍTULO Y ACCIÓN
     tituloModalCategoria.textContent = 'Editar Categoría';
-    // Set Action to Update
+    // SET ACTION TO UPDATE
     formularioCategoria.action = '../modelos/categorias/modificar-categoria.php';
 
     inputIdCategoria.value = categoria.id;
 
-    // Rellenar datos
+    // RELLENAR DATOS
     document.getElementById('nombre-categoria').value = categoria.nombre;
     document.getElementById('descripcion-categoria').value = categoria.descripcion;
     document.getElementById('id-padre-categoria').value = categoria.categoria_padre_id || '';
 }
 
-function eliminarCategoriaDefinitiva(id, nombre) {
-    const url = `../modelos/categorias/eliminar-categoria.php?id=${id}`;
-    const msg = `¿Deseas eliminar la categoría "${nombre}"? Esta acción la marcará como inactiva.`;
-    abrirModalEliminar(url, msg);
-}
+
 
 function activarCategoria(id, nombre) {
     const url = `../modelos/categorias/activar-categoria.php?id=${id}`;
@@ -1007,11 +966,7 @@ function activarCategoria(id, nombre) {
     abrirModalEliminar(url, msg, 'Reactivar', 'bg-green-600');
 }
 
-function eliminarPedidoDefinitivo(id) {
-    const url = `../modelos/pedidos/eliminar-pedido.php?id=${id}&redirect=true`;
-    const msg = `¿Deseas mandar el pedido #${id} a la papelera (baja lógica)?`;
-    abrirModalEliminar(url, msg);
-}
+
 
 function activarPedido(id) {
     const url = `../modelos/pedidos/activar-pedido.php?id=${id}&redirect=true`;
@@ -1019,7 +974,7 @@ function activarPedido(id) {
     abrirModalEliminar(url, msg, 'Reactivar', 'bg-green-600');
 }
 
-// Cerrar modal al hacer clic fuera
+// CERRAR MODAL AL HACER CLIC FUERA
 if (modalCategoria) {
     modalCategoria.addEventListener('click', (e) => {
         if (e.target === modalCategoria) {
@@ -1028,7 +983,7 @@ if (modalCategoria) {
     });
 }
 
-// Gestión del Modal de Notificaciones
+// GESTIÓN DEL MODAL DE NOTIFICACIONES
 const modalNotificacion = document.getElementById('modal-notificacion');
 const iconoNotificacion = document.getElementById('icono-notificacion');
 const tituloNotificacion = document.getElementById('titulo-notificacion');
@@ -1047,8 +1002,6 @@ function mostrarNotificacion(tipo, mensaje) {
         tituloNotificacion.textContent = 'Atención';
     }
 
-    // Ya no usamos decodeURIComponent porque los mensajes de AJAX vienen como texto plano
-    // y esto provocaba fallos si el mensaje contenía caracteres especiales.
     mensajeNotificacion.textContent = mensaje;
 }
 
@@ -1062,30 +1015,41 @@ function cerrarModalNotificacion() {
         url.searchParams.set('tab', tabActiva);
         window.location.href = url.href;
     } else {
-        // Limpiar URL para no mostrar notificación al recargar (opcional, pero buena UX)
         const url = new URL(window.location);
         url.searchParams.delete('status');
         url.searchParams.delete('message');
-        // NO borramos 'tab' para que persista en la URL
         window.history.replaceState({}, '', url);
     }
 }
 
 
 
-// Inicialización al cargar la página
+// INICIALIZACIÓN AL CARGAR LA PÁGINA
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Sugerencias de tallas (datalist)
+    if (!document.getElementById('size-suggestions')) {
+        const datalist = document.createElement('datalist');
+        datalist.id = 'size-suggestions';
+        const suggestions = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', 'Talla Única'];
+        suggestions.forEach(s => {
+            const option = document.createElement('option');
+            option.value = s;
+            datalist.appendChild(option);
+        });
+        document.body.appendChild(datalist);
+    }
+
+    // 2. Gestionar Tabs y Parámetros de URL
     const urlParams = new URLSearchParams(window.location.search);
     const estado = urlParams.get('status');
     const mensaje = urlParams.get('message');
     const urlTab = urlParams.get('tab');
     const storedTab = localStorage.getItem('activeAdminTab');
 
-    // 1. Determinar tab a mostrar: URL > LocalStorage > Default
     const tabAMostrar = urlTab || storedTab || 'dashboard';
-    cambiarPestaña(tabAMostrar, false); // No actualizar URL al inicio para no ensuciar el history si ya está bien
+    cambiarPestaña(tabAMostrar, false);
 
-    // 2. Mostrar notificación si hay status
+    // 3. Mostrar notificación si hay status
     if (estado && mensaje) {
         mostrarNotificacion(estado, mensaje);
     }

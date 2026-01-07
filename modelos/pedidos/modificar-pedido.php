@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
-ob_start();
+
 
 // Verificación de seguridad
 restringirAccesoAPI();
@@ -12,7 +12,9 @@ try {
 
     $pedido_id = isset($_POST['pedido_id']) ? intval($_POST['pedido_id']) : null;
     $usuario_email = !empty($_POST['usuario_email']) ? trim($_POST['usuario_email']) : null;
-    $coste_total = floatval($_POST['coste_total'] ?? 0);
+    $coste_enviado = floatval($_POST['coste_total'] ?? 0);
+    $totalCalculado = 0;
+
     $estado = $_POST['estado'] ?? 'pendiente';
     $nombre_destinatario = $_POST['nombre_destinatario'] ?? '';
     $direccion_envio = $_POST['direccion_envio'] ?? '';
@@ -66,7 +68,7 @@ try {
     $sql = "UPDATE pedidos SET usuario_id = ?, coste_total = ?, estado = ?, nombre_destinatario = ?, direccion_envio = ?, ciudad = ?, provincia = ? 
             WHERE id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$usuario_id, $coste_total, $estado, $nombre_destinatario, $direccion_envio, $ciudad, $provincia, $pedido_id]);
+    $stmt->execute([$usuario_id, $coste_enviado, $estado, $nombre_destinatario, $direccion_envio, $ciudad, $provincia, $pedido_id]);
 
     // BORRA LOS ITEMS ANTERIORES
     $conn->prepare("DELETE FROM detalles_pedido WHERE pedido_id = ?")->execute([$pedido_id]);
@@ -94,13 +96,22 @@ try {
         }
 
         $precio_unitario = floatval($producto['precio']);
+        $totalCalculado += ($precio_unitario * $cantidad);
         $stmtItem->execute([$pedido_id, $prod_id, $cantidad, $precio_unitario]);
 
-        // 2. Si el NUEVEO estado NO es cancelado, restamos stock
+        // 2. Si el NUEVO estado NO es cancelado, restamos stock
+
         if ($estado !== 'cancelado') {
             $stmtActualizarStock->execute([$cantidad, $prod_id]);
         }
     }
+
+    // 3. Verificar si el precio enviado coincide con el real (seguridad)
+    if (abs($totalCalculado - $coste_enviado) > 0.01) {
+        $stmtUpdateTotal = $conn->prepare("UPDATE pedidos SET coste_total = ? WHERE id = ?");
+        $stmtUpdateTotal->execute([$totalCalculado, $pedido_id]);
+    }
+
 
     $conn->commit();
 

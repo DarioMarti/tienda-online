@@ -8,11 +8,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $producto_id = isset($_POST['producto_id']) ? intval($_POST['producto_id']) : 0;
+$variante_id = isset($_POST['variante_id']) ? intval($_POST['variante_id']) : 0;
 $talla = isset($_POST['talla']) ? trim($_POST['talla']) : '';
 $cantidad = isset($_POST['cantidad']) ? intval($_POST['cantidad']) : 1;
 
-if ($producto_id <= 0 || empty($talla)) {
-    echo json_encode(['success' => false, 'message' => 'Datos de producto o talla no válidos.']);
+if ($producto_id <= 0 || $variante_id <= 0) {
+    echo json_encode(['success' => false, 'message' => 'Datos de producto o variante no válidos.']);
     exit();
 }
 
@@ -21,14 +22,13 @@ if (!isset($_SESSION['carrito'])) {
     $_SESSION['carrito'] = [];
 }
 
-// IDENTIFICADOR ÚNICO PARA EL PAR PRODUCTO-TALLA
-$carritoProducto = $producto_id . '_' . $talla;
-
-if (isset($_SESSION['carrito'][$carritoProducto])) {
-    $_SESSION['carrito'][$carritoProducto]['cantidad'] += $cantidad;
+// USAMOS EL ID DE LA VARIANTE COMO CLAVE ÚNICA (Reemplaza a $carritoProducto)
+if (isset($_SESSION['carrito'][$variante_id])) {
+    $_SESSION['carrito'][$variante_id]['cantidad'] += $cantidad;
 } else {
-    $_SESSION['carrito'][$carritoProducto] = [
+    $_SESSION['carrito'][$variante_id] = [
         'producto_id' => $producto_id,
+        'variante_id' => $variante_id,
         'talla' => $talla,
         'cantidad' => $cantidad
     ];

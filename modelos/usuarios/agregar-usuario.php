@@ -15,13 +15,11 @@ if ($nombre === "") {
     $errores[] = "El nombre es obligatorio.";
 }
 
-
-
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $errores[] = "El email no es válido.";
 }
 
-//VALIDACIONES DE CONTRASEÑA
+//VALIDAR CONTRASEÑA
 
 if (strlen($pass) < 6 && strlen($pass)) {
     $errores[] = "La contraseña debe tener al menos 6 caracteres.";
@@ -65,6 +63,8 @@ if ($consultaEmail->fetch()) {
 
 
 //ENCRYPTAR CONTRASEÑA
+
+
 $hash = password_hash($pass, PASSWORD_DEFAULT);
 
 
