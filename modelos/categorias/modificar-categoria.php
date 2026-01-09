@@ -17,7 +17,7 @@ try {
         throw new Exception("ID de categoría no proporcionado.");
     }
 
-    // COMPROBAR DUPLICADOS
+    // COMPROBAR SI YA EXISTE LA CATEGORIA
     $sqlComprobar = "SELECT id FROM categorias WHERE nombre = :nombre AND id != :id";
     $stmtComprobar = $conn->prepare($sqlComprobar);
     $stmtComprobar->execute([

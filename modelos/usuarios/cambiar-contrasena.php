@@ -1,51 +1,49 @@
 <?php
 require_once "../../config/conexion.php";
 ob_start();
-
 header('Content-Type: application/json');
 
-// Verificar que el usuario está logueado
 restringirInvitadosAPI();
 
 try {
     $conn = conectar();
 
-    $currentPassword = $_POST['current_password'] ?? '';
-    $newPassword = $_POST['new_password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
+    $contrasenaActual = $_POST['current_password'] ?? '';
+    $contrasenaNueva = $_POST['new_password'] ?? '';
+    $confirmarContrasenaNueva = $_POST['confirm_password'] ?? '';
     $email = $_SESSION['usuario']['email'];
 
-    // Validaciones básicas
-    if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+    // VALIDACIONES
+    if (empty($contrasenaActual) || empty($contrasenaNueva) || empty($confirmarContrasenaNueva)) {
         echo json_encode(['success' => false, 'message' => 'Todos los campos son obligatorios']);
         exit;
     }
 
-    if ($newPassword !== $confirmPassword) {
+    if ($contrasenaNueva !== $confirmarContrasenaNueva) {
         echo json_encode(['success' => false, 'message' => 'las contraseñas nuevas no coinciden']);
         exit;
     }
 
-    if (strlen($newPassword) < 6) {
+    if (strlen($contrasenaNueva) < 6) {
         echo json_encode(['success' => false, 'message' => 'La nueva contraseña debe tener al menos 6 caracteres']);
         exit;
     }
 
-    // Obtener la contraseña actual de la base de datos
+    // OBTENER LA CONTRASEÑA ACTUAL DE LA BASE DE DATOS
     $stmt = $conn->prepare("SELECT password FROM usuarios WHERE email = :email LIMIT 1");
     $stmt->execute([':email' => $email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    $usuarioContrasenaActual = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$user || !password_verify($currentPassword, $user['password'])) {
+    if (!$usuarioContrasenaActual || !password_verify($contrasenaActual, $usuarioContrasenaActual['password'])) {
         echo json_encode(['success' => false, 'message' => 'La contraseña actual es incorrecta']);
         exit;
     }
 
-    // Actualizar la contraseña
-    $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
-    $updateStmt = $conn->prepare("UPDATE usuarios SET password = :password WHERE email = :email");
-    $updateStmt->execute([
-        ':password' => $newPasswordHash,
+    // ACTUALIZAR LA CONTRASEÑA
+    $contrasenaNuevaHash = password_hash($contrasenaNueva, PASSWORD_DEFAULT);
+    $actualizarStmt = $conn->prepare("UPDATE usuarios SET password = :password WHERE email = :email");
+    $actualizarStmt->execute([
+        ':password' => $contrasenaNuevaHash,
         ':email' => $email
     ]);
 

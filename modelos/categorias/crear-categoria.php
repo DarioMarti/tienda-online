@@ -2,7 +2,6 @@
 require_once '../../config/conexion.php';
 ob_start();
 
-// Verificar permisos
 restringirAccesoAPI();
 
 try {
@@ -26,7 +25,6 @@ try {
     }
 
     // COMPROBAR SI EL NOMBRE DE LA CATEGORIA ES IGUAL AL DE SU CATEGORIA PADRE
-
     if ($categoria_padre_id) {
         $stmtPadre = $conn->prepare("SELECT nombre FROM categorias WHERE id = :id");
         $stmtPadre->execute([':id' => $categoria_padre_id]);

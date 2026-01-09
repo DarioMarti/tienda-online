@@ -2,17 +2,17 @@
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
 
 
-// Función para obtener todas las tallas únicas (para el filtro)
+// OBTENER TODAS LAS TALLAS
 function mostrarTallas()
 {
     $conn = conectar();
-    $sql = "SELECT id, nombre FROM tallas ORDER BY nombre";
+    $sql = "SELECT nombre as talla FROM tallas ORDER BY nombre";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Bloque de ejecución principal (SOLO si se llama directamente via AJAX)
+// SE EJECUTA SOLO SI SE LLAMA DIRECTAMENTE
 if (basename(__FILE__) == basename($_SERVER["SCRIPT_FILENAME"])) {
     header('Content-Type: application/json');
 
@@ -25,12 +25,10 @@ if (basename(__FILE__) == basename($_SERVER["SCRIPT_FILENAME"])) {
         $conn = conectar();
         $id = intval($_GET['id']);
 
-        $stmt = $conn->prepare("
-            SELECT pt.*, t.nombre as talla_nombre 
-            FROM producto_tallas pt 
-            JOIN tallas t ON pt.talla_id = t.id 
-            WHERE pt.producto_id = ?
-        ");
+        $stmt = $conn->prepare("SELECT t.nombre as talla, pt.stock 
+                               FROM producto_tallas pt 
+                               JOIN tallas t ON pt.talla_id = t.id 
+                               WHERE pt.producto_id = ?");
         $stmt->execute([$id]);
         $tallas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -40,4 +38,3 @@ if (basename(__FILE__) == basename($_SERVER["SCRIPT_FILENAME"])) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-?>

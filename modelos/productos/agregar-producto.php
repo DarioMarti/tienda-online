@@ -1,11 +1,10 @@
 <?php
+ob_start();
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
 session_start();
 
 header('Content-Type: application/json');
-ob_start();
 
-// COMPRUEBA SI SE ES EMPLEADO O ADMINISTRADOR
 restringirAccesoAPI();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -65,32 +64,26 @@ try {
         throw new Exception("Debes introducir al menos una talla obligatoriamente.");
     }
 
-    $sqlTalla = "INSERT INTO producto_tallas (producto_id, talla_id, stock) VALUES (?, ?, ?)";
-    $stmtTalla = $conn->prepare($sqlTalla);
-
-    // Helper para obtener el ID de la talla por nombre
-    $stmtGetTallaId = $conn->prepare("SELECT id FROM tallas WHERE nombre = ?");
-    $stmtCreateTalla = $conn->prepare("INSERT INTO tallas (nombre) VALUES (?)");
+    $stmtCheckTalla = $conn->prepare("SELECT id FROM tallas WHERE nombre = ?");
+    $stmtInsertTalla = $conn->prepare("INSERT INTO tallas (nombre) VALUES (?)");
+    $stmtTalla = $conn->prepare("INSERT INTO producto_tallas (producto_id, talla_id, stock) VALUES (?, ?, ?)");
 
     foreach ($tallas_stock as $item) {
-        $tallaNombre = trim($item['talla']);
-        if (empty($tallaNombre))
+        $nombreTalla = trim($item['talla']);
+        if (empty($nombreTalla))
             continue;
 
-        // Buscar ID
-        $stmtGetTallaId->execute([$tallaNombre]);
-        $tallaRow = $stmtGetTallaId->fetch(PDO::FETCH_ASSOC);
+        $stmtCheckTalla->execute([$nombreTalla]);
+        $tallaSeleccionada = $stmtCheckTalla->fetch(PDO::FETCH_ASSOC);
 
-        if ($tallaRow) {
-            $tallaId = $tallaRow['id'];
+        if ($tallaSeleccionada) {
+            $talla_id = $tallaSeleccionada['id'];
         } else {
-            // Si no existe, la creamos (o podrías lanzar error según prefieras)
-            $stmtCreateTalla->execute([$tallaNombre]);
-            $tallaId = $conn->lastInsertId();
+            $stmtInsertTalla->execute([$nombreTalla]);
+            $talla_id = $conn->lastInsertId();
         }
 
-        $stockTalla = intval($item['stock'] ?? 0);
-        $stmtTalla->execute([$producto_id, $tallaId, $stockTalla]);
+        $stmtTalla->execute([$producto_id, $talla_id, 0]);
     }
 
     $conn->commit();
@@ -112,4 +105,3 @@ try {
         'message' => 'Error: ' . $e->getMessage()
     ]);
 }
-?>

@@ -2,40 +2,22 @@
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
 ob_start();
 
-// Verificación de seguridad
-restringirAccesoAPI();
+restringirAccesoPagina();
 
-$exito = false;
-$mensaje = '';
+try {
+    if (!isset($_GET['id'])) {
+        throw new Exception("ID de producto no proporcionado.");
+    }
 
-if (isset($_GET['id'])) {
     $id = intval($_GET['id']);
     $conn = conectar();
 
-    try {
-        // Desactivar registro de la DB (Borrado Lógico)
-        $stmt = $conn->prepare("UPDATE productos SET activo = 0 WHERE id = ?");
-        $stmt->execute([$id]);
+    $stmt = $conn->prepare("UPDATE productos SET activo = 0 WHERE id = ?");
+    $stmt->execute([$id]);
 
-        if ($stmt->rowCount() > 0) {
-            $exito = true;
-            $mensaje = 'Producto desactivado con éxito.';
-        } else {
-            $mensaje = 'El producto no existe o ya estaba desactivado.';
-        }
-    } catch (Exception $e) {
-        $mensaje = 'Error: ' . $e->getMessage();
-    }
-} else {
-    $mensaje = 'ID de producto no proporcionado.';
+    $msg = "Producto desactivado con éxito.";
+    header("Location: ../../src/admin-page.php?status=success&message=" . urlencode($msg) . "&tab=productos");
+} catch (Exception $e) {
+    header("Location: ../../src/admin-page.php?status=error&message=" . urlencode("Error al eliminar: " . $e->getMessage()) . "&tab=productos");
 }
-
-// Redirigir con feedback (usando el sistema de notificaciones de admin-page.php)
-$_SESSION['feedback'] = [
-    'tipo' => $exito ? 'exito' : 'error',
-    'mensaje' => $mensaje
-];
-
-header("Location: ../../src/admin-page.php?tab=productos");
 exit();
-?>

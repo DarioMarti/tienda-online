@@ -1,9 +1,9 @@
 <?php
+ob_start();
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
 session_start();
 
 header('Content-Type: application/json');
-ob_start();
 
 // COMPROBAR SI SE TIENE ACCESO
 restringirAccesoAPI();
@@ -86,38 +86,32 @@ try {
     }
 
     // BORRAMOS TALLAS EXISTENTES PARA EVITAR DUPLICADOS Y ERRORES
-    $sqlDeleteTallas = "DELETE FROM producto_tallas WHERE producto_id = ?";
-    $stmtDelete = $conn->prepare($sqlDeleteTallas);
+
+    $stmtDelete = $conn->prepare("DELETE FROM producto_tallas WHERE producto_id = ?");
     $stmtDelete->execute([$product_id]);
 
     // INSERTAMOS LAS NUEVAS
     if (!empty($tallas_stock)) {
-        $sqlTalla = "INSERT INTO producto_tallas (producto_id, talla_id, stock) VALUES (?, ?, ?)";
-        $stmtTalla = $conn->prepare($sqlTalla);
-
-        // Helper para obtener el ID de la talla por nombre
-        $stmtGetTallaId = $conn->prepare("SELECT id FROM tallas WHERE nombre = ?");
-        $stmtCreateTalla = $conn->prepare("INSERT INTO tallas (nombre) VALUES (?)");
+        $stmtCheckTalla = $conn->prepare("SELECT id FROM tallas WHERE nombre = ?");
+        $stmtInsertTalla = $conn->prepare("INSERT INTO tallas (nombre) VALUES (?)");
+        $stmtTalla = $conn->prepare("INSERT INTO producto_tallas (producto_id, talla_id, stock) VALUES (?, ?, ?)");
 
         foreach ($tallas_stock as $item) {
-            $tallaNombre = trim($item['talla']);
-            if (empty($tallaNombre))
+            $nombreTalla = trim($item['talla']);
+            if (empty($nombreTalla))
                 continue;
 
-            // Buscar ID
-            $stmtGetTallaId->execute([$tallaNombre]);
-            $tallaRow = $stmtGetTallaId->fetch(PDO::FETCH_ASSOC);
+            $stmtCheckTalla->execute([$nombreTalla]);
+            $tallaSeleccionada = $stmtCheckTalla->fetch(PDO::FETCH_ASSOC);
 
-            if ($tallaRow) {
-                $tallaId = $tallaRow['id'];
+            if ($tallaSeleccionada) {
+                $talla_id = $tallaSeleccionada['id'];
             } else {
-                // Si no existe, la creamos
-                $stmtCreateTalla->execute([$tallaNombre]);
-                $tallaId = $conn->lastInsertId();
+                $stmtInsertTalla->execute([$nombreTalla]);
+                $talla_id = $conn->lastInsertId();
             }
 
-            $stockTalla = intval($item['stock'] ?? 0);
-            $stmtTalla->execute([$product_id, $tallaId, $stockTalla]);
+            $stmtTalla->execute([$product_id, $talla_id, 0]);
         }
     }
 
@@ -135,4 +129,3 @@ try {
         'message' => 'Error: ' . $e->getMessage()
     ]);
 }
-?>

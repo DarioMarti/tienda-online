@@ -17,6 +17,12 @@ const CONTENEDOR_ITEMS_CARRITO = document.getElementById('contenedor-items-carri
 const SUBTOTAL_CARRITO = document.getElementById('subtotal-carrito');
 const BOTON_FINALIZAR_COMPRA = document.getElementById('btn-finalizar-compra');
 
+// MENÚ MÓVIL
+const DISPARADOR_MENU_MOVIL = document.getElementById('disparador-menu-movil');
+const SIDEBAR_MENU_MOVIL = document.getElementById('sidebar-menu-movil');
+const CERRAR_MENU_MOVIL = document.getElementById('cerrar-menu-movil');
+const BOTON_LOGIN_MOVIL = document.getElementById('btn-login-movil');
+
 // CONTROL DEL SCROLL EN CABECERA
 window.addEventListener('scroll', () => {
     const barraSuperior = document.getElementById('barra-superior');
@@ -38,16 +44,16 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// GESTIÓN DE BARRAS LATERALES (LOGIN / CARRITO)
+// GESTIÓN DE BARRAS LATERALES (LOGIN / CARRITO / MENÚ)
 function cerrarSidebars() {
-    [SIDEBAR_LOGIN, SIDEBAR_CARRITO].forEach(sidebar => {
+    [SIDEBAR_LOGIN, SIDEBAR_CARRITO, SIDEBAR_MENU_MOVIL].forEach(sidebar => {
         if (sidebar) {
             sidebar.classList.remove('sidebar-abierto');
             sidebar.classList.add('sidebar-cerrado');
         }
     });
     if (CAPA_SUPERPUESTA) CAPA_SUPERPUESTA.classList.add('hidden');
-    if (BOTON_LOGIN) BOTON_LOGIN.style.color = 'black';
+    if (BOTON_LOGIN) BOTON_LOGIN.style.color = '';
 }
 
 // TOGGLE LOGIN SIDEBAR
@@ -81,9 +87,40 @@ if (ICONO_CARRITO) {
 }
 
 // LISTENERS UNIFICADOS PARA CERRAR
-[CERRAR_LOGIN, CERRAR_CARRITO, CONTINUAR_COMPRANDO, CAPA_SUPERPUESTA].forEach(el => {
+[CERRAR_LOGIN, CERRAR_CARRITO, CERRAR_MENU_MOVIL, CONTINUAR_COMPRANDO, CAPA_SUPERPUESTA].forEach(el => {
     if (el) el.addEventListener('click', cerrarSidebars);
 });
+
+// TOGGLE MENÚ MÓVIL
+if (DISPARADOR_MENU_MOVIL) {
+    DISPARADOR_MENU_MOVIL.addEventListener('click', (e) => {
+        e.stopPropagation();
+        console.log("Menú móvil clickeado");
+        if (SIDEBAR_MENU_MOVIL.classList.contains('sidebar-abierto')) {
+            cerrarSidebars();
+        } else {
+            cerrarSidebars();
+            SIDEBAR_MENU_MOVIL.classList.add('sidebar-abierto');
+            SIDEBAR_MENU_MOVIL.classList.remove('sidebar-cerrado');
+            if (CAPA_SUPERPUESTA) CAPA_SUPERPUESTA.classList.remove('hidden');
+            console.log("Sidebar menú móvil abierto");
+        }
+    });
+}
+
+// LOGIN DESDE MENÚ MÓVIL
+if (BOTON_LOGIN_MOVIL) {
+    BOTON_LOGIN_MOVIL.addEventListener('click', () => {
+        cerrarSidebars();
+        setTimeout(() => {
+            if (SIDEBAR_LOGIN) {
+                SIDEBAR_LOGIN.classList.add('sidebar-abierto');
+                SIDEBAR_LOGIN.classList.remove('sidebar-cerrado');
+                if (CAPA_SUPERPUESTA) CAPA_SUPERPUESTA.classList.remove('hidden');
+            }
+        }, 300);
+    });
+}
 
 // GESTIÓN DEL BUSCADOR
 if (DISPARADOR_BUSQUEDA) {

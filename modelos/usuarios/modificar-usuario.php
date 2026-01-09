@@ -1,10 +1,8 @@
 <?php
 require_once "../../config/conexion.php";
 ob_start();
-
 header('Content-Type: application/json');
 
-// Verificar que el usuario está logueado
 restringirInvitadosAPI();
 
 try {
@@ -39,7 +37,6 @@ try {
     $filasAfectadas = $statement->rowCount();
 
     // ACTUALIZAR SESIÓN
-    
     $_SESSION["usuario"]["nombre"] = $nombre;
     $_SESSION["usuario"]["apellidos"] = $apellidos;
     $_SESSION["usuario"]["telefono"] = $telefono;

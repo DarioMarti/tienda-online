@@ -14,7 +14,7 @@ try {
     }
 
     // NO PERMMITE LA ELIMINACION DE SU PROPIO USUARIO
-    
+
     if ($id == $_SESSION['usuario']['id']) {
         throw new Exception("No puedes eliminar tu propia cuenta de administrador desde aquí.");
     }

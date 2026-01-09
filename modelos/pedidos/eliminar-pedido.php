@@ -14,9 +14,9 @@ try {
     if (!$id)
         throw new Exception("ID de pedido no proporcionado.");
 
-    $stmtStatus = $conn->prepare("SELECT estado FROM pedidos WHERE id = ?");
-    $stmtStatus->execute([$id]);
-    $pedido = $stmtStatus->fetch(PDO::FETCH_ASSOC);
+    $stmtEstado = $conn->prepare("SELECT estado FROM pedidos WHERE id = ?");
+    $stmtEstado->execute([$id]);
+    $pedido = $stmtEstado->fetch(PDO::FETCH_ASSOC);
 
     if ($pedido && $pedido['estado'] !== 'cancelado') {
         $stmtItems = $conn->prepare("SELECT producto_id, cantidad FROM detalles_pedido WHERE pedido_id = ?");

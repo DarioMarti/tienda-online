@@ -2,8 +2,6 @@
 header('Content-Type: application/json');
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
 
-
-// Verificación de seguridad
 restringirAccesoAPI();
 
 try {
@@ -21,7 +19,6 @@ try {
     $ciudad = $_POST['ciudad'] ?? '';
     $provincia = $_POST['provincia'] ?? '';
 
-    // Datos de productos
     $producto_ids = $_POST['producto_id'] ?? [];
     $cantidades = $_POST['cantidad'] ?? [];
 
@@ -44,23 +41,24 @@ try {
         $usuario_id = $usuario['id'];
     }
 
-    // 2. Actualizar Detalles (Gestión de stock basada en estado)
 
-    // Obtener estado anterior del pedido
+    // OBTENER EL ESTADO ANTERIOR DEL PEDIDO
     $stmtEstadoAnterior = $conn->prepare("SELECT estado FROM pedidos WHERE id = ?");
     $stmtEstadoAnterior->execute([$pedido_id]);
     $estadoAnterior = $stmtEstadoAnterior->fetch(PDO::FETCH_ASSOC);
     $estado_anterior = $estadoAnterior['estado'] ?? 'pendiente';
 
-    // 1. Si el estado anterior NO era cancelado, restauramos el stock de los items antiguos
+    // SI EL ESTADO ANTERIOR NO ERA CANCELADO, SE RESTAURA EL STOCK DE LOS ITEMS ANTERIORES
+
+
     if ($estado_anterior !== 'cancelado') {
         $stmtItemsAntiguos = $conn->prepare("SELECT producto_id, cantidad FROM detalles_pedido WHERE pedido_id = ?");
         $stmtItemsAntiguos->execute([$pedido_id]);
         $itemsAntiguos = $stmtItemsAntiguos->fetchAll(PDO::FETCH_ASSOC);
 
-        $stmtRestoreStock = $conn->prepare("UPDATE productos SET stock = stock + ? WHERE id = ?");
+        $stmtRestaurarStock = $conn->prepare("UPDATE productos SET stock = stock + ? WHERE id = ?");
         foreach ($itemsAntiguos as $itemAntiguo) {
-            $stmtRestoreStock->execute([$itemAntiguo['cantidad'], $itemAntiguo['producto_id']]);
+            $stmtRestaurarStock->execute([$itemAntiguo['cantidad'], $itemAntiguo['producto_id']]);
         }
     }
 
@@ -90,7 +88,6 @@ try {
         if (!$producto)
             throw new Exception("El producto con ID $prod_id no existe.");
 
-        // Solo validamos stock si el nuevo estado NO es cancelado
         if ($estado !== 'cancelado' && $producto['stock'] < $cantidad) {
             throw new Exception("Stock insuficiente para '{$producto['nombre']}'. Disponible: {$producto['stock']}, Solicitado: $cantidad");
         }
@@ -99,14 +96,12 @@ try {
         $totalCalculado += ($precio_unitario * $cantidad);
         $stmtItem->execute([$pedido_id, $prod_id, $cantidad, $precio_unitario]);
 
-        // 2. Si el NUEVO estado NO es cancelado, restamos stock
-
         if ($estado !== 'cancelado') {
             $stmtActualizarStock->execute([$cantidad, $prod_id]);
         }
     }
 
-    // 3. Verificar si el precio enviado coincide con el real (seguridad)
+    // VERIFICAR SI EL PRECIO ENVIADO COINCIDE CON EL REAL
     if (abs($totalCalculado - $coste_enviado) > 0.01) {
         $stmtUpdateTotal = $conn->prepare("UPDATE pedidos SET coste_total = ? WHERE id = ?");
         $stmtUpdateTotal->execute([$totalCalculado, $pedido_id]);

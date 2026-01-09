@@ -3,7 +3,6 @@ header('Content-Type: application/json');
 require_once dirname(__DIR__, 2) . "/config/conexion.php";
 ob_start();
 
-// COMPROBAR SI SE TIENE ACCESO
 restringirAccesoAPI();
 
 try {

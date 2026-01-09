@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/seguridad.php';
+require_once __DIR__ . '/../config/conexion.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -21,6 +22,8 @@ require_once __DIR__ . '/../config/seguridad.php';
     <!-- FAVICON -->
     <link rel="icon" href="../img/home/Favicon_Aetherea.ico" type="image/x-icon">
 
+    <!-- STRIPE -->
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 
 <body class="antialiased">
@@ -54,12 +57,12 @@ require_once __DIR__ . '/../config/seguridad.php';
                 </a>
             </nav>
 
-            <!-- ICONOS MENÚ MÓVIL -->
-            <div class="lg:hidden text-2xl cursor-pointer">
+            <!-- MENÚ HAMBURGUESA MÓVIL -->
+            <div class="lg:hidden text-2xl cursor-pointer" id="disparador-menu-movil">
                 <i class="ph ph-list"></i>
             </div>
 
-            <!-- LOGO CENTRAL -->
+            <!-- LOGO -->
             <a href="index.php" class="absolute left-1/2 transform -translate-x-1/2">
                 <img src="../img/Logotipo_Aetherea.svg" alt="Logo Aetheria" class="h-8">
             </a>
@@ -101,7 +104,9 @@ require_once __DIR__ . '/../config/seguridad.php';
 
                     <!--USUARIO NO REGISTRADO-->
                     <span class="text-xs uppercase tracking-widest hidden md:block cursor-pointer font-medium mr-2 login"
-                        id="btn-login">Login</span>
+                        id="btn-login">
+                        Login
+                    </span>
                 <?php endif; ?>
 
                 <i class="ph ph-magnifying-glass cursor-pointer hover:scale-110 transition-transform search"
@@ -110,7 +115,13 @@ require_once __DIR__ . '/../config/seguridad.php';
                     <i class="ph ph-handbag cesta hover:scale-110 transition-transform"></i>
                     <?php
                     $total_carrito = 0;
-                    if (isset($_SESSION['carrito'])) {
+                    if (isset($_SESSION['usuario'])) {
+                        $conn = conectar();
+                        $stmt = $conn->prepare("SELECT SUM(cantidad) as total FROM carrito WHERE usuario_id = ?");
+                        $stmt->execute([$_SESSION['usuario']['id']]);
+                        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                        $total_carrito = $result['total'] ?? 0;
+                    } elseif (isset($_SESSION['carrito'])) {
                         foreach ($_SESSION['carrito'] as $item) {
                             $total_carrito += $item['cantidad'];
                         }
@@ -225,4 +236,42 @@ require_once __DIR__ . '/../config/seguridad.php';
             </a>
         </div>
 
+    </div>
+
+    <!--MENÚ VERSIÓN MÓVIL -->
+    <div id="sidebar-menu-movil" class="sidebar-lateral sidebar-cerrado z-[55] flex flex-col !max-w-none">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="editorial-font text-3xl italic">Menú</h2>
+            <button id="cerrar-menu-movil" class="text-gray-400 hover:text-fashion-black transition-colors">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+
+        <nav class="flex flex-col space-y-6 text-sm uppercase tracking-[0.2em] font-medium">
+            <a href="index.php"
+                class="hover:text-fashion-accent transition-colors py-2 border-b border-gray-50 <?= ($titulo ?? '') === 'Inicio - Aetheria' ? 'text-fashion-accent' : '' ?>">
+                Home
+            </a>
+            <a href="rebajas-page.php"
+                class="hover:text-fashion-accent transition-colors py-2 border-b border-gray-50 <?= ($titulo ?? '') === 'Rebajas - Aetheria' ? 'text-red-600 font-bold' : 'text-red-500' ?>">
+                Rebajas
+            </a>
+            <a href="sobre-nosotros-page.php"
+                class="hover:text-fashion-accent transition-colors py-2 border-b border-gray-50 <?= ($titulo ?? '') === 'Sobre Nosotros - Aetheria' ? 'text-fashion-accent' : '' ?>">
+                Sobre Nosotros
+            </a>
+            <a href="contacto-page.php"
+                class="hover:text-fashion-accent transition-colors py-2 border-b border-gray-50 <?= ($titulo ?? '') === 'Contacto - Aetheria' ? 'text-fashion-accent' : '' ?>">
+                Contacto
+            </a>
+        </nav>
+
+        <div class="mt-auto pt-10 border-t border-gray-100 flex flex-col space-y-4">
+            <?php if (!isset($_SESSION['usuario'])): ?>
+                <button id="btn-login-movil"
+                    class="w-full py-4 border border-fashion-black text-xs uppercase tracking-widest font-semibold hover:bg-fashion-black hover:text-white transition-all">
+                    Iniciar Sesión
+                </button>
+            <?php endif; ?>
+        </div>
     </div>

@@ -2,7 +2,6 @@
 require_once "../../config/conexion.php";
 ob_start();
 
-// Verificar permisos
 restringirAccesoAPI();
 
 try {
@@ -14,7 +13,6 @@ try {
     }
 
     // COMPROBAR SI ES UNA CATEGORÍA PADRE
-
     $stmtComprobarEsPadre = $conn->prepare("SELECT COUNT(*) FROM categorias WHERE categoria_padre_id = :id");
     $stmtComprobarEsPadre->execute([':id' => $id]);
     if ($stmtComprobarEsPadre->fetchColumn() > 0) {

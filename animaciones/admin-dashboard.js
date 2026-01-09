@@ -1,6 +1,3 @@
-
-
-
 // GESTIÓN DE LAS PESTAÑAS
 function cambiarPestaña(idPestaña, actualizarUrl = true) {
 
@@ -247,7 +244,7 @@ function abrirModalEliminar(url, mensaje, textoBtn = 'Eliminar', colorBtn = 'bg-
     if (botonConfirmar) {
         botonConfirmar.textContent = textoBtn;
 
-        // LIMPIAR TODAS LAS CLASES DE COLOR POSIBLES (INCLUYENDO LAS DE TAILWIND ESTANDAR Y PERSONALIZADAS)
+        // LIMPIAR TODAS LAS CLASES DE COLOR POSIBLES
         botonConfirmar.className = botonConfirmar.className.replace(/\bbg-\S+/g, '').replace(/\bhover:bg-\S+/g, '');
 
         // AÑADIR LAS CLASES BASE NECESARIAS (QUE PERDIMOS CON EL REPLACE ANTERIOR SI ESTABAN AHÍ)
@@ -708,8 +705,7 @@ function abrirModalProducto() {
     // INICIALIZAR TALLAS
     const contenedorTallas = document.getElementById('contenedor-tallas');
     if (contenedorTallas) {
-        contenedorTallas.innerHTML = ''; // LIMPIAR CONTENEDOR
-        // PEQUEÑO TIMEOUT PARAASEGURAR QUE EL DOM ESTÁ LISTO SI HAY LAG
+        contenedorTallas.innerHTML = '';
         setTimeout(() => {
             if (typeof añadirFilaTalla === 'function') {
                 añadirFilaTalla();
@@ -760,10 +756,16 @@ function añadirFilaTalla(talla = '') {
     const div = document.createElement('div');
     div.className = 'flex gap-4 items-center size-row mb-2 relative';
 
+    const tallasEstandar = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', 'Talla Única'];
+    let opciones = tallasEstandar.map(talla => `<option value="${talla}" ${talla === talla ? 'selected' : ''}>${talla}</option>`).join('');
+
     div.innerHTML = `
         <div class="relative flex-1">
-            <input type="text" name="talla_input[]" value="${talla}" list="size-suggestions" placeholder="Talla (Ej: S, 38)" 
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-fashion-black text-sm bg-white font-bold text-fashion-black" autocomplete="off">
+            <select name="talla_input[]" 
+                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-fashion-black text-sm bg-white font-bold text-fashion-black cursor-pointer">
+                <option value="" disabled ${talla === '' ? 'selected' : ''}>Seleccionar Talla</option>
+                ${opciones}
+            </select>
         </div>
         
         <button type="button" class="delete-size-btn text-red-500 hover:text-red-700 p-2 transform hover:scale-110 transition-transform bg-white rounded border border-red-200">
@@ -775,14 +777,6 @@ function añadirFilaTalla(talla = '') {
         contenedor.appendChild(div);
     } catch (e) {
         console.error("Error al hacer appendChild: " + e.message);
-    }
-
-    // Auto-focus
-    if (talla === '') {
-        try {
-            const input = div.querySelector('input[type="text"]');
-            if (input) input.focus();
-        } catch (e) { console.error(e); }
     }
 }
 
@@ -1026,20 +1020,7 @@ function cerrarModalNotificacion() {
 
 // INICIALIZACIÓN AL CARGAR LA PÁGINA
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Sugerencias de tallas (datalist)
-    if (!document.getElementById('size-suggestions')) {
-        const datalist = document.createElement('datalist');
-        datalist.id = 'size-suggestions';
-        const suggestions = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', 'Talla Única'];
-        suggestions.forEach(s => {
-            const option = document.createElement('option');
-            option.value = s;
-            datalist.appendChild(option);
-        });
-        document.body.appendChild(datalist);
-    }
-
-    // 2. Gestionar Tabs y Parámetros de URL
+    // 1. Gestionar Tabs y Parámetros de URL
     const urlParams = new URLSearchParams(window.location.search);
     const estado = urlParams.get('status');
     const mensaje = urlParams.get('message');

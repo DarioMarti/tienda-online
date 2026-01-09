@@ -2,8 +2,7 @@
 require_once "../../config/conexion.php";
 ob_start();
 
-// COMPROBAR SI SE TIENE ACCESO
-restringirAccesoAPI();
+restringirAccesoPagina();
 
 try {
     $conn = conectar();
@@ -13,13 +12,12 @@ try {
         throw new Exception("ID de producto no proporcionado.");
     }
 
-    $stmt = $conn->prepare("UPDATE productos SET activo = 1 WHERE id = :id");
-    $stmt->execute([':id' => $id]);
+    $stmt = $conn->prepare("UPDATE productos SET activo = 1 WHERE id = ?");
+    $stmt->execute([$id]);
 
     $msg = "Producto reactivado correctamente";
     header("Location: ../../src/admin-page.php?status=success&message=" . urlencode($msg) . "&tab=productos");
 } catch (Exception $e) {
     header("Location: ../../src/admin-page.php?status=error&message=" . urlencode("Error al activar: " . $e->getMessage()) . "&tab=productos");
 }
-exit;
-?>
+exit();

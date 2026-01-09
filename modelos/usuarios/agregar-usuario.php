@@ -1,14 +1,13 @@
 <?php
+ob_start();
+require("../../config/conexion.php");
 
-//RECIBIR DATOS
-
+// RECIBIR DATOS
 $nombre = trim($_POST["nombre"] ?? "");
 $email = trim($_POST["email"] ?? "");
 $pass = $_POST["contraseña"] ?? "";
 
-
-//VALIDAR DATOS
-
+// VALIDAR DATOS
 $errores = [];
 
 if ($nombre === "") {
@@ -19,9 +18,8 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $errores[] = "El email no es válido.";
 }
 
-//VALIDAR CONTRASEÑA
-
-if (strlen($pass) < 6 && strlen($pass)) {
+// VALIDAR CONTRASEÑA
+if (strlen($pass) < 6 && !empty($pass)) {
     $errores[] = "La contraseña debe tener al menos 6 caracteres.";
 }
 
@@ -33,66 +31,44 @@ if (!preg_match('/[0-9]/', $pass)) {
     $errores[] = "La contraseña debe contener al menos un número.";
 }
 
-
-
 if (!empty($errores)) {
     foreach ($errores as $e) {
         echo "<p style='color:red;'>$e</p>";
     }
-    exit;
+    exit();
 }
 
-
-
 // CONECTAR A BASE DE DATOS
-
-require("../../config/conexion.php");
-
 $conn = conectar();
 
-
-//COMPROBAR SI EL EMAIL YA EXISTE
-
-$consultaEmail = $conn->prepare("SELECT id FROM usuarios WHERE email = :email LIMIT 1");
-$consultaEmail->execute([":email" => $email]);
+// COMPROBAR SI EL EMAIL YA EXISTE
+$consultaEmail = $conn->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
+$consultaEmail->execute([$email]);
 
 if ($consultaEmail->fetch()) {
     echo "<p style='color:red;'>Este email ya está registrado.</p>";
-    exit;
+    exit();
 }
 
-
-//ENCRYPTAR CONTRASEÑA
-
-
+// ENCRIPTAR CONTRASEÑA
 $hash = password_hash($pass, PASSWORD_DEFAULT);
 
-
-//INSERTAR NUEVO USUARIO
+// INSERTAR NUEVO USUARIO
 try {
+    $stmt = $conn->prepare("INSERT INTO usuarios (nombre, email, password)
+    VALUES (?, ?, ?)");
+    $stmt->execute([$nombre, $email, $hash]);
 
-    $consulta = "INSERT INTO usuarios (nombre, email, password) 
-                 VALUES (:nombre, :email, :pass)";
-
-    $stmt = $conn->prepare($consulta);
-    $stmt->execute([
-        ":nombre" => $nombre,
-        ":email" => $email,
-        ":pass" => $hash
-    ]);
-
-    header("location:../../src/usuario-registrado-page.php");
+    header("Location: ../../src/usuario-registrado-page.php");
+    exit();
 
 } catch (PDOException $e) {
     echo '
-<div id="errorModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h2>Error</h2>
-        <p>Error al registrar usuario: ' . $e->getMessage() . '</p>
-    </div>
-</div>
-';
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Error</h2>
+            <p>Error al registrar usuario: ' . htmlspecialchars($e->getMessage()) . '</p>
+        </div>
+    </div>';
 }
-
-?>

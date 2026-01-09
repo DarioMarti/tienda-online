@@ -20,10 +20,12 @@ function mostrarProductos($orden = '', $tallas = [], $categoria = '', $precio = 
     }
 
     // FILTRAR POR VARIAS TALLAS
+
+
     if (!empty($tallas)) {
         $placeholders = implode(',', array_fill(0, count($tallas), '?'));
-        // Usamos una subconsulta porque las tallas están en otra tabla
-        $where[] = "p.id IN (SELECT pt.producto_id FROM producto_tallas pt JOIN tallas t ON pt.talla_id = t.id WHERE t.nombre IN ($placeholders))";
+        $where[] = "p.id IN (SELECT pt.producto_id FROM producto_tallas pt
+        JOIN tallas t ON pt.talla_id = t.id WHERE t.nombre IN ($placeholders))";
         $params = array_merge($params, $tallas);
     }
 
@@ -78,6 +80,3 @@ function mostrarProductos($orden = '', $tallas = [], $categoria = '', $precio = 
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
-
-?>
